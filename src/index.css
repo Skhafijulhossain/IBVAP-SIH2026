@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #0284c7;
+    --color-accent: #06b6d4;
+    --bg-tactical: #0a0f1d;
+  }
+
+  body {
+    background-color: #070b14;
+    color: #e2e8f0;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Custom high-tech scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0b1120;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #0284c7;
+  }
+}
+
+/* Tactical HUD overlays and grid textures */
+.tactical-grid-bg {
+  background-size: 30px 30px;
+  background-image: 
+    linear-gradient(to right, rgba(14, 165, 233, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(14, 165, 233, 0.05) 1px, transparent 1px);
+}
+
+.tactical-dots-bg {
+  background-image: radial-gradient(rgba(14, 165, 233, 0.15) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.tactical-glow-blue {
+  box-shadow: 0 0 25px -5px rgba(2, 132, 199, 0.35);
+}
+
+.tactical-glow-red {
+  box-shadow: 0 0 25px -5px rgba(239, 68, 68, 0.45);
+}
+
+.tactical-glow-green {
+  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.35);
+}
+
+.cctv-scanline {
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0),
+    rgba(255,255,255,0) 50%,
+    rgba(0, 240, 255, 0.12) 50%,
+    rgba(0, 240, 255, 0.12)
+  );
+  background-size: 100% 4px;
+}
+
+.hud-corner-tl {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid #06b6d4;
+  border-left: 2px solid #06b6d4;
+}
+
+.hud-corner-tr {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid #06b6d4;
+  border-right: 2px solid #06b6d4;
+}
+
+.hud-corner-bl {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  width: 12px;
+  height: 12px;
+  border-bottom: 2px solid #06b6d4;
+  border-left: 2px solid #06b6d4;
+}
+
+.hud-corner-br {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 12px;
+  height: 12px;
+  border-bottom: 2px solid #06b6d4;
+  border-right: 2px solid #06b6d4;
+}
+
+/* Glassmorphic card styling */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(56, 189, 248, 0.15);
+}
+
+.glass-panel-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel-hover:hover {
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 4px 20px -2px rgba(2, 132, 199, 0.2);
+}
