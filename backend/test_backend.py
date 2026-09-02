@@ -3,6 +3,7 @@ Automated Integration Test for IBVAP FastAPI Defense Backend
 """
 
 import sys
+import os
 from fastapi.testclient import TestClient
 from backend.main import app
 from backend.database.init_db import init_db
@@ -47,11 +48,13 @@ def run_tests():
 
     # Test 5: POST /api/cameras/test-rtsp
     print("[7] Testing POST /api/cameras/test-rtsp...")
-    resp = client.post("/api/cameras/test-rtsp", json={"rtspUrl": "rtsp://admin:pass@10.240.12.101:554/live"})
+    sample_feed_path = os.path.abspath("backend/sample_feed.mp4")
+    resp = client.post("/api/cameras/test-rtsp", json={"rtspUrl": sample_feed_path})
     assert resp.status_code == 200, f"RTSP test failed: {resp.text}"
     rtsp_res = resp.json()
     assert rtsp_res["success"] is True, f"RTSP handshake failed: {rtsp_res}"
-    print(f"    -> RTSP Handshake: {rtsp_res['message']} (Latency: {rtsp_res['latencyMs']}ms)")
+    assert "fps" in rtsp_res and "bitrate" in rtsp_res
+    print(f"    -> RTSP Handshake: {rtsp_res['message']} (Latency: {rtsp_res['latencyMs']}ms, Status: {rtsp_res.get('status')})")
 
     # Test 6: POST /api/alerts/ALT-8901/acknowledge
     print("[8] Testing POST /api/alerts/ALT-8901/acknowledge...")
@@ -80,7 +83,6 @@ def run_tests():
     # Test 9: POST /api/ai/detect with OpenCV image
     print("[11] Testing POST /api/ai/detect (YOLOv11 Deep Vision Detection on Sample Bus & Person image)...")
     import cv2
-    import os
     import ultralytics
 
     bus_img_path = os.path.join(os.path.dirname(ultralytics.__file__), "assets", "bus.jpg")
@@ -122,7 +124,7 @@ def run_tests():
     print("[12] Testing POST /api/stream/start...")
     resp_start = client.post("/api/stream/start", json={
         "camera_id": "CAM-01",
-        "rtsp_url": "rtsp://admin:secure_pass@10.240.12.101:554/stream1",
+        "rtsp_url": "rtsp://127.0.0.1:8554/cam1",
         "fps": 20,
         "camera_name": "North Sector Fence Alpha",
         "sector": "Sector-1 (North Perimeter)"
@@ -144,7 +146,16 @@ def run_tests():
     assert status_data["active_streams"] >= 1, f"Expected at least 1 active stream, got {status_data}"
     cam01_status = status_data["streams"].get("CAM-01")
     assert cam01_status is not None, "CAM-01 stream status missing"
-    print(f"    -> Active Streams: {status_data['active_streams']}, CAM-01 Status: {cam01_status['status']}, Frames: {cam01_status['frames_processed']}")
+    assert "reconnect_count" in cam01_status, "reconnect_count missing in stream status"
+    assert "current_fps" in cam01_status, "current_fps missing in stream status"
+    assert "bitrate" in cam01_status, "bitrate missing in stream status"
+    print(f"    -> Active Streams: {status_data['active_streams']}, CAM-01 Status: {cam01_status['status']}, Frames: {cam01_status['frames_processed']}, Reconnects: {cam01_status['reconnect_count']}")
+
+    # Test 11b: GET /api/stream/feed/CAM-01 (when reconnecting/waiting, returns 503 Service Unavailable)
+    print("[13b] Testing GET /api/stream/feed/CAM-01...")
+    resp_feed = client.get("/api/stream/feed/CAM-01")
+    assert resp_feed.status_code in [200, 503], f"Expected 200 (if streaming) or 503 (if reconnecting), got {resp_feed.status_code}"
+    print(f"    -> Live feed endpoint validated (Status: {resp_feed.status_code})")
 
     # Test 12: WebSocket /ws/alerts connection
     print("[14] Testing WebSocket /ws/alerts handshake...")

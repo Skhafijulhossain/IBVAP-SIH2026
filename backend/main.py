@@ -19,7 +19,7 @@ from .routes.alerts import router as alerts_router
 from .routes.events import router as events_router
 from .routes.system import router as system_router
 from .routes.ai import router as ai_router
-from .routes.stream import router as stream_router
+from .routes.stream import router as stream_router, stream_manager
 from .routes.websocket import router as ws_router
 
 
@@ -29,8 +29,14 @@ async def lifespan(app: FastAPI):
     print("[IBVAP Backend] Initializing Defense Database & Seeding Edge Telemetry...")
     init_db()
     print("[IBVAP Backend] System Online. Edge AI Defense Grid Active on port 8000.")
+    # Initialize live RTSP stream ingestion worker for CAM-01
+    try:
+        stream_manager.start_stream(camera_id="CAM-01")
+    except Exception as e:
+        print(f"[IBVAP Backend] Note on auto-starting CAM-01 stream: {e}")
     yield
     print("[IBVAP Backend] Shutting down Defense API Gateway...")
+    stream_manager.stop_stream("all")
 
 
 app = FastAPI(

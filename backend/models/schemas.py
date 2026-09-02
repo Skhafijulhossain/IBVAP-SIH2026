@@ -268,6 +268,10 @@ class RtspTestResponse(BaseModel):
     resolution: str
     codec: str
     message: str
+    fps: Optional[float] = None
+    bitrate: Optional[str] = None
+    status: Optional[str] = None
+    hints: Optional[List[str]] = None
 
 
 class HealthResponse(BaseModel):

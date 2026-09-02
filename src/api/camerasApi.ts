@@ -138,7 +138,17 @@ export const camerasApi = {
    * POST /cameras/test-rtsp
    * Simulates/tests RTSP handshake and latency
    */
-  async testRtspStream(rtspUrl: string): Promise<{ success: boolean; latencyMs: number; resolution: string; codec: string; message: string }> {
+  async testRtspStream(rtspUrl: string): Promise<{
+    success: boolean;
+    latencyMs: number;
+    resolution: string;
+    codec: string;
+    message: string;
+    fps?: number;
+    bitrate?: string;
+    status?: string;
+    hints?: string[];
+  }> {
     if (ApiService.getConfig().isLiveBackend) {
       try {
         return await ApiService.request('/cameras/test-rtsp', {
@@ -158,7 +168,11 @@ export const camerasApi = {
         latencyMs: 0,
         resolution: 'N/A',
         codec: 'N/A',
+        status: 'offline',
+        fps: 0,
+        bitrate: '0.0 Mbps',
         message: 'Invalid protocol schema. Expected RTSP or HTTP ONVIF URI.',
+        hints: ['Ensure the URL begins with rtsp:// or http://'],
       };
     }
 
@@ -167,7 +181,11 @@ export const camerasApi = {
       latencyMs: Math.floor(Math.random() * 35) + 12,
       resolution: '1920x1080 @ 30 FPS',
       codec: 'H.264 / AAC High-Profile',
+      status: 'connected',
+      fps: 30,
+      bitrate: '4.8 Mbps',
       message: 'RTSP Handshake validated successfully. Edge pipeline ready.',
+      hints: [],
     };
   },
 

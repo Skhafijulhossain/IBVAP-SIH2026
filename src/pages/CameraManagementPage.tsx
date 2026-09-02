@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Camera, CameraStatus } from '../types';
 import { useApp } from '../context/AppContext';
 import { camerasApi } from '../api/camerasApi';
+import { LiveCameraSetupGuide } from '../components/cameras/LiveCameraSetupGuide';
 import { 
   Camera as CameraIcon, 
   Plus, 
@@ -118,6 +119,9 @@ export const CameraManagementPage: React.FC = () => {
           <span>Add RTSP Camera</span>
         </button>
       </div>
+
+      {/* OBS + MediaMTX Live Camera Setup Guide for CAM-01 */}
+      <LiveCameraSetupGuide />
 
       {/* Filter and Search Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-900/90 rounded-2xl border border-slate-800 text-xs">
