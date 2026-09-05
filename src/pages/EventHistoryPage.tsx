@@ -14,23 +14,33 @@ import { formatConfidence, getSeverityBadgeClass, getDetectionTypeLabel, exportT
 
 export const EventHistoryPage: React.FC = () => {
   const [events, setEvents] = useState<SurveillanceEvent[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedThreat, setSelectedThreat] = useState<string>('all');
-  const [minConfidence, setMinConfidence] = useState<number>(0.75);
+  const [minConfidence, setMinConfidence] = useState<number>(0.80);
   const [selectedEvent, setSelectedEvent] = useState<SurveillanceEvent | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
     const loadEvents = async () => {
-      const data = await eventsApi.getEvents({
-        search: searchQuery,
-        eventType: selectedType,
-        threatLevel: selectedThreat,
-        minConfidence,
-      });
-      setEvents(data);
+      setIsLoading(true);
+      try {
+        const data = await eventsApi.getEvents({
+          search: searchQuery,
+          eventType: selectedType,
+          threatLevel: selectedThreat,
+          minConfidence,
+        });
+        if (isMounted) setEvents(data);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
     };
     loadEvents();
+    return () => {
+      isMounted = false;
+    };
   }, [searchQuery, selectedType, selectedThreat, minConfidence]);
 
   const handleExportCsv = () => {
@@ -180,7 +190,16 @@ export const EventHistoryPage: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
-            {events.length === 0 ? (
+            {isLoading ? (
+              <tr>
+                <td colSpan={9} className="py-8 text-center text-cyan-400 font-mono text-xs">
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                    <span>QUERYING IMMUTABLE FORENSIC LOGS (CONFIDENCE ≥ {Math.round(minConfidence * 100)}%)...</span>
+                  </div>
+                </td>
+              </tr>
+            ) : events.length === 0 ? (
               <tr>
                 <td colSpan={9} className="py-8 text-center text-slate-500 font-sans">
                   No historical surveillance events found matching selected filter criteria.

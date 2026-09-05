@@ -14,6 +14,7 @@ import {
   Video, 
   Sun
 } from 'lucide-react';
+import { TacticalSkeleton } from '../components/common/TacticalSkeleton';
 
 export const LiveMonitoringPage: React.FC = () => {
   const { cameras, selectedCamera, setSelectedCamera } = useApp();
@@ -38,7 +39,11 @@ export const LiveMonitoringPage: React.FC = () => {
   const displayedCameras = gridLayout === '1x1' && activeCam ? [activeCam] : cameras;
 
   if (!activeCam) {
-    return <div className="p-8 text-center text-slate-400">Loading Surveillance Feeds...</div>;
+    return (
+      <div className="p-4 space-y-4">
+        <TacticalSkeleton type="matrix" count={4} label="SYNCHRONIZING TACTICAL CCTV MATRIX..." />
+      </div>
+    );
   }
 
   return (

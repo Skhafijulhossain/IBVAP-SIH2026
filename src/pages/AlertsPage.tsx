@@ -29,9 +29,11 @@ export const AlertsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [severityFilter, setSeverityFilter] = useState<'all' | AlertSeverity>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | AlertStatus>('all');
+  const [minConfidence, setMinConfidence] = useState<number>(0.80);
   const [inspectingAlert, setInspectingAlert] = useState<Alert | null>(null);
 
   const filteredAlerts = alerts.filter((alert: Alert) => {
+    if (alert.confidence < minConfidence) return false;
     if (severityFilter !== 'all' && alert.severity !== severityFilter) return false;
     if (statusFilter !== 'all' && alert.status !== statusFilter) return false;
     if (searchQuery) {
@@ -141,6 +143,41 @@ export const AlertsPage: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400"
           />
+        </div>
+
+        {/* Confidence Filter Slider & Presets */}
+        <div className="flex items-center gap-2.5 bg-slate-950 px-3 py-1 rounded-xl border border-slate-800 text-xs">
+          <div className="flex items-center gap-1.5 text-slate-300">
+            <span className="text-slate-400 font-mono text-[11px]">Min Conf:</span>
+            <span className="font-mono text-cyan-300 font-bold text-[11px]">{Math.round(minConfidence * 100)}%</span>
+          </div>
+          <input
+            type="range"
+            min="0.70"
+            max="0.95"
+            step="0.05"
+            value={minConfidence}
+            onChange={(e) => setMinConfidence(parseFloat(e.target.value))}
+            className="w-20 accent-cyan-400 cursor-pointer"
+          />
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setMinConfidence(0.80)}
+              className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition-colors ${
+                minConfidence === 0.80 ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              0.80
+            </button>
+            <button
+              onClick={() => setMinConfidence(0.90)}
+              className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition-colors ${
+                minConfidence === 0.90 ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              0.90+
+            </button>
+          </div>
         </div>
 
         {/* Severity & Status Filter Tabs */}

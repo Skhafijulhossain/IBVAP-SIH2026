@@ -12,6 +12,7 @@ import { EventHistoryPage } from './pages/EventHistoryPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/LoginPage';
 import { IncidentModal } from './components/alerts/IncidentModal';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { Menu, X, ShieldAlert, Bell, ChevronRight } from 'lucide-react';
 
 const AppContent: React.FC = () => {
@@ -70,9 +71,9 @@ const AppContent: React.FC = () => {
         </main>
       </div>
 
-      {/* Live Red Alert Notification Toast */}
+      {/* Live Red Alert Notification Toast (Responsive on Mobile & Desktop) */}
       {activeToastAlert && (
-        <div className="fixed top-4 right-4 z-50 max-w-md w-full animate-bounce">
+        <div className="fixed top-4 right-4 left-4 sm:left-auto sm:max-w-md z-50 animate-bounce">
           <div className="p-4 rounded-2xl bg-gradient-to-r from-red-950/95 via-red-900/90 to-black/95 border-2 border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.8)] backdrop-blur-xl flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-xl bg-red-600 text-white shadow-lg animate-pulse shrink-0 mt-0.5">
@@ -137,13 +138,15 @@ const AppContent: React.FC = () => {
 
 export function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AppProvider>
-          <AppContent />
-        </AppProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppProvider>
+            <AppContent />
+          </AppProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

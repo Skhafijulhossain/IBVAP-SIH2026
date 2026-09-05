@@ -8,6 +8,7 @@ import { AlertPanel } from '../components/dashboard/AlertPanel';
 import { CameraHealth } from '../components/dashboard/CameraHealth';
 import { EventTimeline } from '../components/dashboard/EventTimeline';
 import { Video, Radio, ChevronRight } from 'lucide-react';
+import { TacticalSkeleton } from '../components/common/TacticalSkeleton';
 import type { ActivePage } from '../components/layout/Sidebar';
 import type { Camera } from '../types';
 
@@ -79,18 +80,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         </div>
 
         {/* 4-Grid CCTV Viewports */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {primaryFourCameras.map((camera: Camera) => (
-            <TacticalCctvFeed
-              key={camera.id}
-              camera={camera}
-              onSelectCamera={(cam: Camera) => {
-                setSelectedCamera(cam);
-                onNavigate('monitoring');
-              }}
-            />
-          ))}
-        </div>
+        {primaryFourCameras.length === 0 ? (
+          <TacticalSkeleton type="matrix" count={4} label="INITIALIZING PRIMARY 4-CH DEFENSE GRID..." />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {primaryFourCameras.map((camera: Camera) => (
+              <TacticalCctvFeed
+                key={camera.id}
+                camera={camera}
+                onSelectCamera={(cam: Camera) => {
+                  setSelectedCamera(cam);
+                  onNavigate('monitoring');
+                }}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* 3. AI Workflow Section: Existing CCTV -> Edge AI -> AI Analytics -> Event Engine -> Command Center */}
