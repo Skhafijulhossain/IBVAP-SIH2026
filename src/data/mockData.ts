@@ -550,7 +550,7 @@ export const DEFAULT_AI_CONFIG: AiModelConfig = {
   modelName: 'YOLOv11-BorderSurveillance-v2.4',
   version: '2.4.1-DefenseEdition',
   framework: 'PyTorch / TensorRT 10.2 / ONNX',
-  confidenceThreshold: 0.75,
+  confidenceThreshold: 0.80,
   iouThreshold: 0.45,
   inputResolution: '1280x1280',
   targetFps: 30,

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { Camera, Alert, SystemStats, AiModelConfig, SurveillanceEvent } from '../types';
 import { camerasApi } from '../api/camerasApi';
 import { alertsApi } from '../api/alertsApi';
@@ -28,6 +28,7 @@ interface AppContextType {
   toggleSimulation: () => void;
   toggleEmergencyLockdown: () => void;
   triggerManualAlert: (type?: 'intrusion' | 'line_crossing' | 'vehicle' | 'person') => void;
+  dispatchConfirmedAlert: (alert: Alert) => void;
   refreshCameras: () => Promise<void>;
   refreshAlerts: () => Promise<void>;
   refreshEvents: () => Promise<void>;
@@ -63,6 +64,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [blinkingCameraId, setBlinkingCameraId] = useState<string | null>(null);
   const [activeToastAlert, setActiveToastAlert] = useState<Alert | null>(null);
 
+  // Cooldown and deduplication refs to prevent alert spam
+  const alertCooldownMapRef = useRef<Map<string, number>>(new Map());
+  const blinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Load cameras & stream status
   const refreshCameras = useCallback(async () => {
     try {
@@ -71,8 +77,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (!selectedCamera && data.length > 0) {
         setSelectedCamera(data[0]);
       }
-    } catch (err) {
-      console.error('Failed to load cameras', err);
+    } catch {
+      // Offline fallback already populated
     }
   }, [selectedCamera]);
 
@@ -82,8 +88,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (res && res.streams) {
         setStreamStatus(res.streams);
       }
-    } catch (err) {
-      console.warn('Stream status fallback:', err);
+    } catch {
+      // Expected when backend is offline on Vercel
     }
   }, []);
 
@@ -91,8 +97,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const data = await alertsApi.getAlerts();
       setAlerts(data);
-    } catch (err) {
-      console.error('Failed to load alerts', err);
+    } catch {
+      // Fallback
     }
   }, []);
 
@@ -100,8 +106,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const data = await eventsApi.getEvents();
       setEvents(data);
-    } catch (err) {
-      console.error('Failed to load events', err);
+    } catch {
+      // Fallback
     }
   }, []);
 
@@ -111,37 +117,65 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     refreshAlerts();
     refreshEvents();
 
-    // Poll stream status every 6 seconds to track active FPS and frames processed
+    // Poll stream status every 6 seconds, paused when tab is hidden
     const streamInterval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       refreshStreamStatus();
     }, 6000);
 
     return () => clearInterval(streamInterval);
   }, [refreshCameras, refreshStreamStatus, refreshAlerts, refreshEvents]);
 
-  // Handle incoming live alert from WebSocket (/ws/alerts)
-  useEffect(() => {
-    let blinkTimeout: ReturnType<typeof setTimeout> | null = null;
-    let toastTimeout: ReturnType<typeof setTimeout> | null = null;
+  /**
+   * Unified alert processor with 5-second cooldown and duplicate detection merging
+   */
+  const processIncomingAlert = useCallback(
+    (newAlert: Alert) => {
+      const alertKey = `${newAlert.cameraId}_${newAlert.eventType}`;
+      const now = Date.now();
+      const lastAlertTime = alertCooldownMapRef.current.get(alertKey) || 0;
 
-    const unsubscribe = wsService.subscribe((newAlert) => {
+      // 5-second cooldown: Merge repeated detections into existing active alert
+      if (now - lastAlertTime < 5000) {
+        setAlerts((prev) => {
+          const existingIdx = prev.findIndex(
+            (a) => a.cameraId === newAlert.cameraId && a.eventType === newAlert.eventType && a.status === 'new'
+          );
+          if (existingIdx >= 0) {
+            const updated = [...prev];
+            updated[existingIdx] = {
+              ...updated[existingIdx],
+              confidence: Math.max(updated[existingIdx].confidence, newAlert.confidence),
+              timestamp: 'Just now',
+              description: `${newAlert.description} [Continuous Tracking]`,
+            };
+            return updated;
+          }
+          return prev;
+        });
+        return;
+      }
+
+      // New confirmed alert past cooldown window
+      alertCooldownMapRef.current.set(alertKey, now);
+
       // 1. Prepend to alerts list
       setAlerts((prev) => [newAlert, ...prev]);
 
       // 2. Trigger visual red alert notification toast
       setActiveToastAlert(newAlert);
-      if (toastTimeout) clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => {
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+      toastTimeoutRef.current = setTimeout(() => {
         setActiveToastAlert(null);
-      }, 8000);
+      }, 6000);
 
       // 3. Blink the affected camera card
       if (newAlert.cameraId) {
         setBlinkingCameraId(newAlert.cameraId);
-        if (blinkTimeout) clearTimeout(blinkTimeout);
-        blinkTimeout = setTimeout(() => {
+        if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
+        blinkTimeoutRef.current = setTimeout(() => {
           setBlinkingCameraId(null);
-        }, 8000);
+        }, 6000);
       }
 
       // 4. Update Event Timeline by appending a new forensic event
@@ -179,14 +213,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           tacticalAudio.playRadioBeep();
         }
       }
-    });
+    },
+    [soundEnabled]
+  );
+
+  // Connect WebSocket / wsService to unified alert processor
+  useEffect(() => {
+    const unsubscribe = wsService.subscribe(processIncomingAlert);
 
     return () => {
       unsubscribe();
-      if (blinkTimeout) clearTimeout(blinkTimeout);
-      if (toastTimeout) clearTimeout(toastTimeout);
+      if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     };
-  }, [soundEnabled]);
+  }, [processIncomingAlert]);
+
+  const dispatchConfirmedAlert = useCallback(
+    (alert: Alert) => {
+      processIncomingAlert(alert);
+    },
+    [processIncomingAlert]
+  );
 
   const dismissToastAlert = () => {
     setActiveToastAlert(null);
@@ -272,6 +319,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toggleSimulation,
         toggleEmergencyLockdown,
         triggerManualAlert,
+        dispatchConfirmedAlert,
         refreshCameras,
         refreshAlerts,
         refreshEvents,

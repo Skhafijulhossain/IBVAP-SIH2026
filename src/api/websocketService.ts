@@ -11,10 +11,27 @@ class WebSocketService {
   private simulationInterval: ReturnType<typeof setInterval> | null = null;
   private isSimulationEnabled = true;
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+  private lastManualAlertTime = 0;
+  private lastManualAlert: Alert | null = null;
 
   constructor() {
     this.connect();
     this.startSimulation();
+    this.setupVisibilityListener();
+  }
+
+  private setupVisibilityListener() {
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          // Pause simulation timer when tab is hidden to save CPU/battery
+          this.pauseSimulation();
+        } else if (this.isSimulationEnabled && !this.isConnected) {
+          // Resume simulation when tab becomes active
+          this.startSimulation();
+        }
+      });
+    }
   }
 
   public connect(url = (import.meta.env?.VITE_WS_URL as string) || 'ws://localhost:8000/ws/alerts') {
@@ -28,7 +45,6 @@ class WebSocketService {
       this.socket.onopen = () => {
         this.isConnected = true;
         this.notifyState(true);
-        console.log('[WebSocket] Connected to live FastAPI Defense Gateway at', url);
         if (this.reconnectTimeout) {
           clearTimeout(this.reconnectTimeout);
           this.reconnectTimeout = null;
@@ -43,8 +59,8 @@ class WebSocketService {
           } else if (data.type === 'ALERT' || data.severity) {
             this.broadcastAlert(data as Alert);
           }
-        } catch (err) {
-          console.error('[WebSocket] Failed to parse message', err);
+        } catch {
+          // Malformed packet, ignore
         }
       };
 
@@ -70,7 +86,7 @@ class WebSocketService {
     this.reconnectTimeout = setTimeout(() => {
       this.reconnectTimeout = null;
       this.connect(url);
-    }, 4000);
+    }, 6000);
   }
 
   public disconnect() {
@@ -85,7 +101,6 @@ class WebSocketService {
     this.isConnected = false;
     this.notifyState(false);
   }
-
 
   public subscribe(callback: AlertCallback): () => void {
     this.subscribers.add(callback);
@@ -103,11 +118,23 @@ class WebSocketService {
   }
 
   private notifyState(connected: boolean) {
-    this.stateSubscribers.forEach((cb) => cb(connected));
+    this.stateSubscribers.forEach((cb) => {
+      try {
+        cb(connected);
+      } catch {
+        // Safe callback execution
+      }
+    });
   }
 
   private broadcastAlert(alert: Alert) {
-    this.subscribers.forEach((cb) => cb(alert));
+    this.subscribers.forEach((cb) => {
+      try {
+        cb(alert);
+      } catch {
+        // Safe subscriber notification
+      }
+    });
   }
 
   public setSimulationEnabled(enabled: boolean) {
@@ -115,8 +142,7 @@ class WebSocketService {
     if (enabled && !this.simulationInterval) {
       this.startSimulation();
     } else if (!enabled && this.simulationInterval) {
-      clearInterval(this.simulationInterval);
-      this.simulationInterval = null;
+      this.pauseSimulation();
     }
   }
 
@@ -126,16 +152,30 @@ class WebSocketService {
 
   /**
    * Manually trigger a mock alert (perfect for live jury demo!)
+   * Includes a 5-second cooldown to prevent notification flooding.
    */
-  public triggerManualMockAlert(customType?: 'intrusion' | 'line_crossing' | 'vehicle' | 'person') {
-    const types: Array<{ type: 'intrusion' | 'line_crossing' | 'vehicle' | 'person'; severity: 'critical' | 'warning' | 'info'; label: string }> = [
+  public triggerManualMockAlert(customType?: 'intrusion' | 'line_crossing' | 'vehicle' | 'person'): Alert | null {
+    const now = Date.now();
+    // 5-second cooldown for manual trigger
+    if (now - this.lastManualAlertTime < 5000 && this.lastManualAlert) {
+      return this.lastManualAlert;
+    }
+    this.lastManualAlertTime = now;
+
+    const types: Array<{
+      type: 'intrusion' | 'line_crossing' | 'vehicle' | 'person';
+      severity: 'critical' | 'warning' | 'info';
+      label: string;
+    }> = [
       { type: 'intrusion', severity: 'critical', label: 'Breach Attempt: Thermal signature advancing across barbed fence' },
       { type: 'line_crossing', severity: 'critical', label: 'Tripwire Alert: Cross-border trajectory verified by YOLOv11' },
       { type: 'vehicle', severity: 'warning', label: 'Suspicious vehicle stopped at Sector-2 Perimeter Gap' },
       { type: 'person', severity: 'info', label: 'Border Guard Patrol unit check-in acknowledged' },
     ];
 
-    const selected = customType ? types.find((t) => t.type === customType) || types[0] : types[Math.floor(Math.random() * types.length)];
+    const selected = customType
+      ? types.find((t) => t.type === customType) || types[0]
+      : types[Math.floor(Math.random() * types.length)];
     const camIndex = Math.floor(Math.random() * 4) + 1;
     const camId = `CAM-0${camIndex}`;
     const camNames: Record<string, string> = {
@@ -153,7 +193,7 @@ class WebSocketService {
       sector: `Sector-${camIndex} Tactical Zone`,
       eventType: selected.type,
       severity: selected.severity,
-      confidence: parseFloat((0.85 + Math.random() * 0.13).toFixed(2)),
+      confidence: parseFloat((0.82 + Math.random() * 0.14).toFixed(2)),
       status: 'new',
       thumbnailUrl: `/snapshots/cam-0${camIndex}-live.jpg`,
       description: selected.label,
@@ -165,21 +205,29 @@ class WebSocketService {
       assignedUnit: selected.severity === 'critical' ? 'QRF Alpha Fast Response Unit' : undefined,
     };
 
+    this.lastManualAlert = mockAlert;
     this.broadcastAlert(mockAlert);
     return mockAlert;
   }
 
+  private pauseSimulation() {
+    if (this.simulationInterval) {
+      clearInterval(this.simulationInterval);
+      this.simulationInterval = null;
+    }
+  }
+
   private startSimulation() {
-    if (this.simulationInterval) clearInterval(this.simulationInterval);
-    // Periodically simulate an event every 35-45 seconds in background
+    this.pauseSimulation();
+    // Periodically simulate an event every 40-50 seconds in background (only when tab is visible)
     this.simulationInterval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       if (this.isSimulationEnabled && !this.isConnected) {
-        // 40% probability to spawn an alert periodically
-        if (Math.random() > 0.4) {
+        if (Math.random() > 0.45) {
           this.triggerManualMockAlert();
         }
       }
-    }, 38000);
+    }, 45000);
   }
 }
 
