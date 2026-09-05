@@ -21,6 +21,8 @@ interface AppContextType {
   isEmergencyLockdown: boolean;
   blinkingCameraId: string | null;
   activeToastAlert: Alert | null;
+  activeWebcamCameraId: string | null;
+  setActiveWebcamCameraId: (cameraId: string | null) => void;
   setSelectedCamera: (camera: Camera | null) => void;
   setSelectedAlert: (alert: Alert | null) => void;
   dismissToastAlert: () => void;
@@ -63,6 +65,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isEmergencyLockdown, setIsEmergencyLockdown] = useState<boolean>(false);
   const [blinkingCameraId, setBlinkingCameraId] = useState<string | null>(null);
   const [activeToastAlert, setActiveToastAlert] = useState<Alert | null>(null);
+  const [activeWebcamCameraId, setActiveWebcamCameraId] = useState<string | null>(null);
 
   // Cooldown and deduplication refs to prevent alert spam
   const alertCooldownMapRef = useRef<Map<string, number>>(new Map());
@@ -312,6 +315,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isEmergencyLockdown,
         blinkingCameraId,
         activeToastAlert,
+        activeWebcamCameraId,
+        setActiveWebcamCameraId,
         setSelectedCamera,
         setSelectedAlert,
         dismissToastAlert,

@@ -16,6 +16,7 @@ import {
   Video,
   AlertTriangle,
 } from 'lucide-react';
+import { TacticalSkeleton } from '../common/TacticalSkeleton';
 import { formatConfidence } from '../../utils/helpers';
 
 interface TacticalCctvFeedProps {
@@ -37,7 +38,14 @@ export const TacticalCctvFeed: React.FC<TacticalCctvFeedProps> = ({
   onSelectCamera,
   isFocused = false,
 }) => {
-  const { blinkingCameraId, streamStatus, dispatchConfirmedAlert, aiConfig } = useApp();
+  const {
+    blinkingCameraId,
+    streamStatus,
+    dispatchConfirmedAlert,
+    aiConfig,
+    activeWebcamCameraId,
+    setActiveWebcamCameraId,
+  } = useApp();
   const isBlinking = blinkingCameraId === camera.id;
   const activeStreamInfo = streamStatus ? streamStatus[camera.id] : null;
 
@@ -48,7 +56,9 @@ export const TacticalCctvFeed: React.FC<TacticalCctvFeedProps> = ({
   const [simulatedFps, setSimulatedFps] = useState<number>(camera.fps || 30);
   const [snapshotTaken, setSnapshotTaken] = useState<boolean>(false);
   const [streamError, setStreamError] = useState<boolean>(false);
-  const [isWebcamActive, setIsWebcamActive] = useState<boolean>(false);
+
+  // Exclusivity: Only active if this camera is the globally chosen webcam source
+  const isWebcamActive = activeWebcamCameraId === camera.id;
 
   // Distinguish real RTSP managed camera (CAM-01) from fallback cameras (CAM-02, CAM-03, CAM-04)
   const isRtspManaged = camera.id === 'CAM-01' || (Boolean(activeStreamInfo) && activeStreamInfo?.status !== 'stopped');
@@ -210,12 +220,8 @@ export const TacticalCctvFeed: React.FC<TacticalCctvFeedProps> = ({
             </div>
           </div>
         ) : isWebcamActive && isWebcamLoading ? (
-          /* Connecting to Hardware WebCam */
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#070b14]/95 p-4 text-center z-20">
-            <Radio className="w-8 h-8 text-sky-400 animate-spin mb-2" />
-            <div className="text-xs font-mono font-bold tracking-wider text-sky-300">INITIALIZING EDGE CAMERA...</div>
-            <div className="text-[10px] font-mono text-slate-400 mt-1">Configuring MediaStream & 8-12 FPS Inference Pipeline</div>
-          </div>
+          /* Connecting to Hardware WebCam with tactical radar skeleton */
+          <TacticalSkeleton type="feed" label={`CALIBRATING ${camera.id} EDGE SENSOR...`} />
         ) : isWebcamActive && isWebcamStreaming ? (
           /* Live Physical WebCam Video Element */
           <div className="absolute inset-0 pointer-events-none">
@@ -451,8 +457,8 @@ export const TacticalCctvFeed: React.FC<TacticalCctvFeedProps> = ({
                 </div>
 
                 {/* Target Metadata Subtag */}
-                <div className="absolute -bottom-4 left-0 text-[8px] font-mono bg-black/80 px-1 py-0.2 rounded text-slate-300 whitespace-nowrap border border-slate-700">
-                  TRK#{det.trackId} {det.speed ? `• ${det.speed}` : ''}
+                <div className="absolute -bottom-4 left-0 text-[8px] font-mono bg-black/85 px-1 py-0.2 rounded text-slate-300 whitespace-nowrap border border-slate-700">
+                  TRK#{det.trackId} {det.speed ? `• ${det.speed}` : ''} {det.direction ? `• [${det.direction}]` : ''}
                 </div>
 
                 {/* Center Crosshair Dot */}
@@ -564,11 +570,15 @@ export const TacticalCctvFeed: React.FC<TacticalCctvFeedProps> = ({
         {/* Bottom Right HUD: Quick Action Vision, AI & WebCam Toggles */}
         {showControls && (
           <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1 bg-black/85 backdrop-blur-md p-1 rounded-xl border border-slate-800 opacity-90 hover:opacity-100 transition-opacity">
-            {/* Direct Device WebCam Mode Toggle */}
+            {/* Direct Device WebCam Mode Toggle with mutual exclusion */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setIsWebcamActive((prev) => !prev);
+                if (isWebcamActive) {
+                  setActiveWebcamCameraId(null);
+                } else {
+                  setActiveWebcamCameraId(camera.id);
+                }
               }}
               title={isWebcamActive ? 'Switch Back to RTSP/Simulated Scene' : 'Activate Physical WebCam (Edge AI Live)'}
               className={`p-1.5 rounded-lg text-xs transition-all flex items-center gap-1 ${
