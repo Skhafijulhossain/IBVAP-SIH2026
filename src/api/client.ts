@@ -10,7 +10,7 @@ export interface ApiConfig {
 }
 
 export const API_CONFIG: ApiConfig = {
-  baseUrl: 'http://localhost:8000/api',
+  baseUrl: (import.meta.env?.VITE_API_URL as string) || 'http://localhost:8000/api',
   isLiveBackend: true, // Connect to live FastAPI backend by default
   timeoutMs: 3000,
 };

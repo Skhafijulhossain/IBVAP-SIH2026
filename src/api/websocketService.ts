@@ -17,7 +17,7 @@ class WebSocketService {
     this.startSimulation();
   }
 
-  public connect(url = 'ws://localhost:8000/ws/alerts') {
+  public connect(url = (import.meta.env?.VITE_WS_URL as string) || 'ws://localhost:8000/ws/alerts') {
     if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
       return;
     }

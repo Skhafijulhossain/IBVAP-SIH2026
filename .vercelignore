@@ -1,0 +1,8 @@
+# Vercel Ignore Rules
+# Exclude Python backend and heavy model/video files from Vite frontend build & deployment
+backend/
+*.pt
+*.mp4
+*.db
+*.sqlite3
+*.log
