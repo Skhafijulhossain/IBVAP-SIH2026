@@ -77,8 +77,11 @@ class YOLOv11Detector:
         try:
             print(f"[YOLOv11] Loading model '{self.model_name}'...")
             self.model = YOLO(self.model_name)
+            # Warm up model with a dummy tensor so first live video frame is instant
+            dummy = np.zeros((160, 160, 3), dtype=np.uint8)
+            self.model.predict(source=dummy, conf=0.5, verbose=False, device=self.device)
             self.is_loaded = True
-            print(f"[YOLOv11] Successfully loaded '{self.model_name}'. Ready for inference.")
+            print(f"[YOLOv11] Successfully loaded and warmed up '{self.model_name}'. Ready for inference.")
         except Exception as e:
             print(f"[YOLOv11 Error] Failed to load '{self.model_name}': {e}")
             self.is_loaded = False

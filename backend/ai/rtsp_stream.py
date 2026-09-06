@@ -21,7 +21,6 @@ os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp|stimeout;30000
 from .yolo_detector import yolo_detector
 from .tripwire import TripwireEngine
 from ..models.schemas import BoundingBox, WireCoordinates
-from ..routes.websocket import manager as ws_manager
 
 
 class RTSPStreamIngestor:
@@ -195,14 +194,17 @@ class RTSPStreamIngestor:
                             self.current_fps = 0.0
                             break
 
-                    # 1. Encode to JPEG immediately for low-latency live streaming
-                    ok, jpeg_buf = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+                    # 1. Process AI detections & virtual tripwire, draw tactical overlays
+                    annotated_frame = self._process_and_annotate(frame)
+
+                    # 2. Encode to JPEG immediately for low-latency live streaming
+                    ok, jpeg_buf = cv2.imencode('.jpg', annotated_frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
                     if ok:
                         frame_bytes = jpeg_buf.tobytes()
                         with self._frame_lock:
                             self.latest_jpeg_frame = frame_bytes
 
-                    # 2. Update FPS and bitrate metrics
+                    # 3. Update FPS and bitrate metrics
                     self._fps_counter += 1
                     now = time.time()
                     dt = now - self._fps_timer
@@ -216,9 +218,6 @@ class RTSPStreamIngestor:
                                 self.bitrate = f"{round(approx_kbps / 1000.0, 1)} Mbps"
                             else:
                                 self.bitrate = f"{int(approx_kbps)} Kbps"
-
-                    # 3. Process AI detections & virtual tripwire
-                    self._process_single_frame(frame)
 
                     elapsed = time.time() - t0
                     sleep_time = max(0.001, frame_interval - elapsed)
@@ -240,18 +239,34 @@ class RTSPStreamIngestor:
                 time.sleep(backoff_sec)
                 backoff_sec = min(max_backoff, backoff_sec * 1.5)
 
-    def _process_single_frame(self, frame: np.ndarray):
-        """Runs YOLOv11 detection on frame, checks tripwire, and dispatches WebSocket alerts."""
+    def _process_and_annotate(self, frame: np.ndarray) -> np.ndarray:
+        """Runs YOLOv11 detection on frame, draws bounding boxes, checks tripwire, and dispatches WebSocket alerts."""
         self.frames_processed += 1
         self.last_frame_time = time.time()
+        img_h, img_w = frame.shape[:2]
 
         # Run YOLOv11 inference for target categories (person, vehicle, animal)
         detections = yolo_detector.detect_categories(frame, conf_threshold=0.30)
         
-        # Serialize detected objects
+        # Serialize detected objects & draw tactical bounding boxes
         det_dicts = []
         has_tripwire_breach = False
         tripwire_label = None
+
+        colors = {
+            "person": (20, 30, 235),
+            "vehicle": (0, 165, 255),
+            "animal": (240, 210, 0),
+        }
+
+        wire_obj = None
+        if self.wire_coordinates:
+            wire_obj = WireCoordinates(
+                x1=self.wire_coordinates["x1"],
+                y1=self.wire_coordinates["y1"],
+                x2=self.wire_coordinates["x2"],
+                y2=self.wire_coordinates["y2"],
+            )
 
         for det in detections:
             bbox_dict = {"x": det.bbox.x, "y": det.bbox.y, "w": det.bbox.w, "h": det.bbox.h}
@@ -263,14 +278,7 @@ class RTSPStreamIngestor:
             self.detections_count += 1
 
             # Check Virtual Tripwire intersection
-            if self.wire_coordinates:
-                wire_obj = WireCoordinates(
-                    x1=self.wire_coordinates["x1"],
-                    y1=self.wire_coordinates["y1"],
-                    x2=self.wire_coordinates["x2"],
-                    y2=self.wire_coordinates["y2"],
-                )
-                # Convert 0.0-1.0 normalized bbox to 0-100% coordinates for tripwire engine
+            if wire_obj:
                 box_pct = BoundingBox(
                     x=det.bbox.x * 100.0,
                     y=det.bbox.y * 100.0,
@@ -283,10 +291,61 @@ class RTSPStreamIngestor:
                     tripwire_label = breach_eval.get("label", "Virtual Tripwire Breach Detected")
                     self.threats_count += 1
 
+            # Draw Tactical Bounding Box and Labels
+            x1 = max(0, min(img_w - 1, int(det.bbox.x * img_w)))
+            y1 = max(0, min(img_h - 1, int(det.bbox.y * img_h)))
+            x2 = max(0, min(img_w - 1, int((det.bbox.x + det.bbox.w) * img_w)))
+            y2 = max(0, min(img_h - 1, int((det.bbox.y + det.bbox.h) * img_h)))
+
+            box_color = colors.get(det.class_name, (0, 220, 255))
+            if has_tripwire_breach and det.class_name == "person":
+                box_color = (0, 0, 255)
+
+            cv2.rectangle(frame, (x1, y1), (x2, y2), box_color, 2)
+            tag_text = f"{det.class_name.upper()} {int(round(det.confidence * 100))}%"
+            (tw, th), _ = cv2.getTextSize(tag_text, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
+            cv2.rectangle(frame, (x1, max(0, y1 - th - 6)), (x1 + tw + 8, y1), box_color, -1)
+            cv2.putText(
+                frame,
+                tag_text,
+                (x1 + 4, y1 - 4),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.45,
+                (255, 255, 255) if det.class_name == "person" else (10, 10, 10),
+                1,
+                cv2.LINE_AA,
+            )
+
+        # Draw virtual tripwire line
+        if self.wire_coordinates:
+            wx1 = int(self.wire_coordinates["x1"] * img_w / 100.0)
+            wy1 = int(self.wire_coordinates["y1"] * img_h / 100.0)
+            wx2 = int(self.wire_coordinates["x2"] * img_w / 100.0)
+            wy2 = int(self.wire_coordinates["y2"] * img_h / 100.0)
+            w_color = (0, 0, 255) if has_tripwire_breach else (255, 200, 0)
+            cv2.line(frame, (wx1, wy1), (wx2, wy2), w_color, 2)
+
         self.last_detections = det_dicts
 
-        # If detections or tripwire breach occurred, broadcast through WebSocket
-        if det_dicts or has_tripwire_breach:
+        # Broadcast telemetry
+        if det_dicts or (self.frames_processed % 15 == 0):
+            self._broadcast_async({
+                "type": "CAMERA_DETECTIONS",
+                "cameraId": self.camera_id,
+                "cameraName": self.camera_name,
+                "sector": self.sector,
+                "detections": det_dicts,
+                "fps": self.current_fps,
+                "status": "streaming",
+                "isLive": True,
+                "sourceType": "rtsp",
+            })
+
+        # If detections or tripwire breach occurred, broadcast alert with cooldown
+        now = time.time()
+        last_alert = getattr(self, "_last_alert_time", 0.0)
+        if (det_dicts or has_tripwire_breach) and (now - last_alert >= 4.0):
+            self._last_alert_time = now
             primary_class = detections[0].class_name if detections else "intrusion"
             event_type = "line_crossing" if has_tripwire_breach else primary_class
             severity = "critical" if (has_tripwire_breach or primary_class == "person") else "warning"
@@ -312,9 +371,12 @@ class RTSPStreamIngestor:
 
             self._broadcast_async(alert_payload)
 
+        return frame
+
     def _broadcast_async(self, alert_payload: Dict[str, Any]):
         """Dispatches alert payload to active WebSocket connections."""
         try:
+            from ..routes.websocket import manager as ws_manager
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 asyncio.run_coroutine_threadsafe(ws_manager.broadcast_alert(alert_payload), loop)
@@ -323,6 +385,7 @@ class RTSPStreamIngestor:
         except RuntimeError:
             # Create temporary event loop if running outside main loop
             try:
+                from ..routes.websocket import manager as ws_manager
                 new_loop = asyncio.new_event_loop()
                 new_loop.run_until_complete(ws_manager.broadcast_alert(alert_payload))
                 new_loop.close()

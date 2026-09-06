@@ -30,7 +30,13 @@ export const eventsApi = {
   }): Promise<SurveillanceEvent[]> {
     if (ApiService.getConfig().isLiveBackend) {
       try {
-        const query = new URLSearchParams(params as Record<string, string>).toString();
+        const queryParams = new URLSearchParams();
+        if (params?.search) queryParams.set('search', params.search);
+        if (params?.eventType && params.eventType !== 'all') queryParams.set('eventType', params.eventType);
+        if (params?.cameraId && params.cameraId !== 'all') queryParams.set('cameraId', params.cameraId);
+        if (params?.threatLevel && params.threatLevel !== 'all') queryParams.set('threatLevel', params.threatLevel);
+        if (params?.minConfidence !== undefined) queryParams.set('minConfidence', String(params.minConfidence));
+        const query = queryParams.toString();
         return await ApiService.request<SurveillanceEvent[]>(`/events${query ? `?${query}` : ''}`);
       } catch (err) {
         console.warn('FastAPI events fallback:', err);

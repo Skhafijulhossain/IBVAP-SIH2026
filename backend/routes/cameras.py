@@ -11,7 +11,6 @@ from ..models.schemas import (
     RtspTestRequest,
     RtspTestResponse,
 )
-from ..ai.rtsp_stream import RTSPStreamIngestor
 
 router = APIRouter(prefix="/cameras", tags=["Cameras"])
 
@@ -160,6 +159,7 @@ def test_rtsp_stream(payload: RtspTestRequest):
     POST /api/cameras/test-rtsp
     Performs handshake, codec probe, and latency test on an RTSP/ONVIF URL.
     """
+    from ..ai.rtsp_stream import RTSPStreamIngestor
     ingestor = RTSPStreamIngestor(camera_id="PROBE", rtsp_url=payload.rtspUrl)
     return ingestor.test_handshake()
 

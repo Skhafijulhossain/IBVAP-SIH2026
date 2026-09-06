@@ -162,8 +162,10 @@ export const TacticalCctvFeed: React.FC<TacticalCctvFeedProps> = ({
   let statusDotClass = 'bg-sky-400';
   let statusBadgeClass = 'bg-black/70 border-slate-700 text-slate-300';
 
-  if (isWebcamStreaming) {
-    statusLabel = 'WEBCAM';
+  const isBackendWebcam = activeStreamInfo?.source_type === 'webcam' || Boolean(activeStreamInfo?.is_webcam);
+
+  if (isWebcamStreaming || (isStreamingLive && isBackendWebcam)) {
+    statusLabel = 'LIVE CAMERA';
     statusDotClass = 'bg-emerald-400 animate-pulse';
     statusBadgeClass = 'bg-emerald-950/80 border-emerald-500/50 text-emerald-300';
   } else if (isStreamingLive) {
@@ -179,8 +181,8 @@ export const TacticalCctvFeed: React.FC<TacticalCctvFeedProps> = ({
     statusDotClass = 'bg-red-400';
     statusBadgeClass = 'bg-red-950/80 border-red-500/50 text-red-300';
   } else {
-    statusLabel = 'ONLINE';
-    statusDotClass = 'bg-emerald-400';
+    statusLabel = 'SIMULATED';
+    statusDotClass = 'bg-sky-400';
     statusBadgeClass = 'bg-black/70 border-slate-700 text-slate-200';
   }
 
@@ -194,8 +196,12 @@ export const TacticalCctvFeed: React.FC<TacticalCctvFeedProps> = ({
     : `${simulatedFps} FPS`;
 
   // Threat Level (Essential Badge 3: Threat Level)
-  const hasCritical = effectiveDetections.some((d) => d.threatLevel === 'critical');
-  const hasWarning = effectiveDetections.some((d) => d.threatLevel === 'warning');
+  const backendDetections = activeStreamInfo?.last_detections || [];
+  const hasBackendCritical = backendDetections.some((d: any) => d.class === 'person' || d.class === 'intrusion');
+  const hasBackendWarning = backendDetections.some((d: any) => d.class === 'vehicle' || d.class === 'animal');
+
+  const hasCritical = isStreamingLive ? hasBackendCritical : effectiveDetections.some((d) => d.threatLevel === 'critical');
+  const hasWarning = isStreamingLive ? hasBackendWarning : effectiveDetections.some((d) => d.threatLevel === 'warning');
 
   let threatLabel = 'THREAT: NOMINAL';
   let threatBadgeClass = 'bg-black/70 border-slate-700 text-emerald-400';
@@ -392,6 +398,7 @@ export const TacticalCctvFeed: React.FC<TacticalCctvFeedProps> = ({
 
         {/* AI Bounding Boxes Overlay (Refined & Softened) */}
         {aiEnabled &&
+          !isStreamingLive &&
           effectiveDetections.map((det) => {
             const isCritical = det.threatLevel === 'critical';
             const isWarning = det.threatLevel === 'warning';

@@ -2,6 +2,17 @@ import { Alert } from '../types';
 
 export type AlertCallback = (alert: Alert) => void;
 export type ConnectionStateCallback = (isConnected: boolean) => void;
+export type DetectionTelemetry = {
+  cameraId: string;
+  cameraName?: string;
+  sector?: string;
+  detections: any[];
+  fps?: number;
+  status?: string;
+  isLive?: boolean;
+  sourceType?: string;
+};
+export type DetectionCallback = (telemetry: DetectionTelemetry) => void;
 
 function getDefaultWebSocketUrl(): string {
   const envWsBase = (
@@ -21,6 +32,7 @@ class WebSocketService {
   private socket: WebSocket | null = null;
   private subscribers: Set<AlertCallback> = new Set();
   private stateSubscribers: Set<ConnectionStateCallback> = new Set();
+  private detectionSubscribers: Set<DetectionCallback> = new Set();
   private isConnected = false;
   private simulationInterval: ReturnType<typeof setInterval> | null = null;
   private isSimulationEnabled = true;
@@ -68,7 +80,9 @@ class WebSocketService {
       this.socket.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          if (data.type === 'NEW_ALERT' && data.data) {
+          if (data.type === 'CAMERA_DETECTIONS') {
+            this.broadcastDetections(data as DetectionTelemetry);
+          } else if (data.type === 'NEW_ALERT' && data.data) {
             this.broadcastAlert(data.data as Alert);
           } else if (data.type === 'ALERT' || data.severity) {
             this.broadcastAlert(data as Alert);
@@ -131,6 +145,13 @@ class WebSocketService {
     };
   }
 
+  public subscribeDetections(callback: DetectionCallback): () => void {
+    this.detectionSubscribers.add(callback);
+    return () => {
+      this.detectionSubscribers.delete(callback);
+    };
+  }
+
   private notifyState(connected: boolean) {
     this.stateSubscribers.forEach((cb) => {
       try {
@@ -145,6 +166,16 @@ class WebSocketService {
     this.subscribers.forEach((cb) => {
       try {
         cb(alert);
+      } catch {
+        // Safe subscriber notification
+      }
+    });
+  }
+
+  private broadcastDetections(telemetry: DetectionTelemetry) {
+    this.detectionSubscribers.forEach((cb) => {
+      try {
+        cb(telemetry);
       } catch {
         // Safe subscriber notification
       }

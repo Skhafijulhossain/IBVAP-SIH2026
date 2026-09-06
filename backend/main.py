@@ -4,6 +4,7 @@ Production-Ready FastAPI Defense Backend
 Team: BWU NEURAL NEXUS
 """
 
+import sys
 from contextlib import asynccontextmanager
 from datetime import datetime
 from fastapi import FastAPI, Depends
@@ -64,14 +65,29 @@ app.add_middleware(
 @app.get("/", tags=["Root"])
 def root():
     """Root status endpoint providing platform metadata and health links."""
+    import os
+    env_name = "Vercel Python Serverless" if os.environ.get("VERCEL") or "api.index" in sys.modules else "Production FastAPI Defense Gateway"
     return {
         "service": "IBVAP — Intelligent Border Video Analytics Platform",
         "status": "ONLINE",
         "version": "2.4.0-Defense",
         "platform": "Smart India Hackathon 2026",
+        "environment": env_name,
         "docs": "/docs",
         "redoc": "/redoc",
         "health": "/health",
+        "endpoints": {
+            "health": "/api/health",
+            "cameras": "/api/cameras",
+            "alerts": "/api/alerts",
+            "events": "/api/events",
+            "system_stats": "/api/system/stats",
+            "system_config": "/api/system/config",
+            "ai_config": "/api/ai/config",
+            "threat_detect": "/api/ai/detect",
+            "stream": "/api/stream",
+            "websocket_alerts": "/ws/alerts",
+        },
     }
 
 

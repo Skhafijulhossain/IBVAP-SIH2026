@@ -220,12 +220,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     [soundEnabled]
   );
 
-  // Connect WebSocket / wsService to unified alert processor
+  // Connect WebSocket / wsService to unified alert processor and real-time detection telemetry
   useEffect(() => {
-    const unsubscribe = wsService.subscribe(processIncomingAlert);
+    const unsubscribeAlerts = wsService.subscribe(processIncomingAlert);
+    const unsubscribeDetections = wsService.subscribeDetections((telemetry) => {
+      if (!telemetry.cameraId) return;
+
+      // 1. Update stream status telemetry
+      setStreamStatus((prev) => ({
+        ...prev,
+        [telemetry.cameraId]: {
+          ...prev[telemetry.cameraId],
+          status: telemetry.status || 'streaming',
+          current_fps: telemetry.fps || 15,
+          source_type: telemetry.sourceType || 'webcam',
+          is_webcam: telemetry.sourceType === 'webcam',
+          last_detections: telemetry.detections || [],
+        },
+      }));
+
+      // 2. Update active detections on the camera node
+      setCameras((prevCams) =>
+        prevCams.map((c) => {
+          if (c.id !== telemetry.cameraId) return c;
+          const mappedDets = (telemetry.detections || []).map((d: any, idx: number) => ({
+            id: `det-live-${idx}`,
+            type: (d.class === 'person' || d.class === 'vehicle' || d.class === 'animal') ? d.class : 'intrusion',
+            label: `${d.class}`,
+            confidence: d.confidence,
+            box: {
+              x: (d.bbox?.x || 0) * 100,
+              y: (d.bbox?.y || 0) * 100,
+              width: (d.bbox?.w || 0.2) * 100,
+              height: (d.bbox?.h || 0.3) * 100,
+            },
+            trackId: 100 + idx,
+            threatLevel: (d.class === 'person' ? 'critical' : 'warning') as any,
+          }));
+          return {
+            ...c,
+            status: 'online',
+            fps: telemetry.fps || c.fps,
+            activeDetections: mappedDets,
+          };
+        })
+      );
+    });
 
     return () => {
-      unsubscribe();
+      unsubscribeAlerts();
+      unsubscribeDetections();
       if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     };
