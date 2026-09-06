@@ -4,15 +4,62 @@
 
 @layer base {
   :root {
-    --color-primary: #0284c7;
-    --color-accent: #06b6d4;
-    --bg-tactical: #0a0f1d;
+    /* Light Theme (Command Center Premium) */
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --surface-raised: #f1f5f9;
+    --card: #ffffff;
+    --card-hover: #f8fafc;
+    --text: #0f172a;
+    --text-secondary: #334155;
+    --muted: #64748b;
+    --muted-light: #94a3b8;
+    --accent: #0284c7;
+    --accent-light: #e0f2fe;
+    --accent-hover: #0369a1;
+    --border: #e2e8f0;
+    --border-subtle: #f1f5f9;
+    --border-hover: #cbd5e1;
+    --header-bg: rgba(255, 255, 255, 0.95);
+    --sidebar-bg: #ffffff;
+    --table-header: #f1f5f9;
+    --table-row-hover: rgba(2, 132, 199, 0.04);
+    --badge-bg: #f1f5f9;
+    --badge-text: #0f172a;
+    --input-bg: #ffffff;
+  }
+
+  .dark {
+    /* Dark Theme (Tactical Defense Navy) */
+    --bg: #070b14;
+    --surface: #090e1a;
+    --surface-raised: #0d1527;
+    --card: #0c1322;
+    --card-hover: #111a2e;
+    --text: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --muted: #64748b;
+    --muted-light: #475569;
+    --accent: #06b6d4;
+    --accent-light: rgba(6, 182, 212, 0.15);
+    --accent-hover: #0891b2;
+    --border: #1e293b;
+    --border-subtle: #141f33;
+    --border-hover: #334155;
+    --header-bg: rgba(8, 14, 27, 0.95);
+    --sidebar-bg: #090e1a;
+    --table-header: #0f172a;
+    --table-row-hover: rgba(6, 182, 212, 0.06);
+    --badge-bg: #131e33;
+    --badge-text: #f1f5f9;
+    --input-bg: #060a12;
   }
 
   body {
-    background-color: #070b14;
-    color: #e2e8f0;
+    background-color: var(--bg);
+    color: var(--text);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 
   /* Custom high-tech scrollbar */
@@ -21,14 +68,14 @@
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #0b1120;
+    background: var(--bg);
   }
   ::-webkit-scrollbar-thumb {
-    background: #1e293b;
+    background: var(--muted-light);
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #0284c7;
+    background: var(--accent);
   }
 }
 
@@ -36,25 +83,26 @@
 .tactical-grid-bg {
   background-size: 30px 30px;
   background-image: 
-    linear-gradient(to right, rgba(14, 165, 233, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(14, 165, 233, 0.05) 1px, transparent 1px);
+    linear-gradient(to right, rgba(14, 165, 233, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(14, 165, 233, 0.04) 1px, transparent 1px);
 }
 
 .tactical-dots-bg {
-  background-image: radial-gradient(rgba(14, 165, 233, 0.15) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(14, 165, 233, 0.1) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
+/* Softened Glow Effects (Reduced ~40% for Clean Premium Look) */
 .tactical-glow-blue {
-  box-shadow: 0 0 25px -5px rgba(2, 132, 199, 0.35);
+  box-shadow: 0 0 16px -3px rgba(2, 132, 199, 0.22);
 }
 
 .tactical-glow-red {
-  box-shadow: 0 0 25px -5px rgba(239, 68, 68, 0.45);
+  box-shadow: 0 0 16px -3px rgba(239, 68, 68, 0.26);
 }
 
 .tactical-glow-green {
-  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 16px -3px rgba(16, 185, 129, 0.22);
 }
 
 .cctv-scanline {
@@ -62,58 +110,63 @@
     to bottom,
     rgba(255,255,255,0),
     rgba(255,255,255,0) 50%,
-    rgba(0, 240, 255, 0.12) 50%,
-    rgba(0, 240, 255, 0.12)
+    rgba(0, 240, 255, 0.08) 50%,
+    rgba(0, 240, 255, 0.08)
   );
   background-size: 100% 4px;
 }
 
+/* Sleek HUD corner reticles */
 .hud-corner-tl {
   position: absolute;
   top: 6px;
   left: 6px;
-  width: 12px;
-  height: 12px;
-  border-top: 2px solid #06b6d4;
-  border-left: 2px solid #06b6d4;
+  width: 10px;
+  height: 10px;
+  border-top: 1.5px solid var(--accent);
+  border-left: 1.5px solid var(--accent);
+  opacity: 0.7;
 }
 
 .hud-corner-tr {
   position: absolute;
   top: 6px;
   right: 6px;
-  width: 12px;
-  height: 12px;
-  border-top: 2px solid #06b6d4;
-  border-right: 2px solid #06b6d4;
+  width: 10px;
+  height: 10px;
+  border-top: 1.5px solid var(--accent);
+  border-right: 1.5px solid var(--accent);
+  opacity: 0.7;
 }
 
 .hud-corner-bl {
   position: absolute;
   bottom: 6px;
   left: 6px;
-  width: 12px;
-  height: 12px;
-  border-bottom: 2px solid #06b6d4;
-  border-left: 2px solid #06b6d4;
+  width: 10px;
+  height: 10px;
+  border-bottom: 1.5px solid var(--accent);
+  border-left: 1.5px solid var(--accent);
+  opacity: 0.7;
 }
 
 .hud-corner-br {
   position: absolute;
   bottom: 6px;
   right: 6px;
-  width: 12px;
-  height: 12px;
-  border-bottom: 2px solid #06b6d4;
-  border-right: 2px solid #06b6d4;
+  width: 10px;
+  height: 10px;
+  border-bottom: 1.5px solid var(--accent);
+  border-right: 1.5px solid var(--accent);
+  opacity: 0.7;
 }
 
-/* Glassmorphic card styling */
+/* Refined Glassmorphic & Defense Panels */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.75);
+  background: var(--card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(56, 189, 248, 0.15);
+  border: 1px solid var(--border);
 }
 
 .glass-panel-hover {
@@ -121,6 +174,6 @@
 }
 
 .glass-panel-hover:hover {
-  border-color: rgba(56, 189, 248, 0.35);
-  box-shadow: 0 4px 20px -2px rgba(2, 132, 199, 0.2);
+  border-color: var(--border-hover);
+  box-shadow: 0 4px 16px -2px rgba(2, 132, 199, 0.12);
 }

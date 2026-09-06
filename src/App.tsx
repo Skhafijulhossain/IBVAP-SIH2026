@@ -9,11 +9,10 @@ import { LiveMonitoringPage } from './pages/LiveMonitoringPage';
 import { CameraManagementPage } from './pages/CameraManagementPage';
 import { AlertsPage } from './pages/AlertsPage';
 import { EventHistoryPage } from './pages/EventHistoryPage';
-import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/LoginPage';
 import { IncidentModal } from './components/alerts/IncidentModal';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
-import { Menu, X, ShieldAlert, Bell, ChevronRight } from 'lucide-react';
+import { Menu, X, ShieldAlert, ChevronRight } from 'lucide-react';
 
 const AppContent: React.FC = () => {
   const [activePage, setActivePage] = useState<ActivePage>('dashboard');
@@ -32,8 +31,6 @@ const AppContent: React.FC = () => {
         return <AlertsPage />;
       case 'events':
         return <EventHistoryPage />;
-      case 'settings':
-        return <SettingsPage />;
       case 'login':
         return <LoginPage onSuccess={() => setActivePage('dashboard')} />;
       default:
@@ -42,7 +39,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-black font-sans">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] flex flex-col selection:bg-sky-500 selection:text-white font-sans transition-colors duration-200">
       {/* Top Header */}
       <Header />
 
@@ -51,7 +48,7 @@ const AppContent: React.FC = () => {
         {/* Mobile Navigation Toggle Button */}
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="lg:hidden fixed bottom-4 right-4 z-50 p-3 rounded-full bg-sky-600 text-white shadow-2xl border border-sky-400/40"
+          className="lg:hidden fixed bottom-4 right-4 z-50 p-3 rounded-full bg-sky-600 text-white shadow-xl border border-sky-400/30 hover:bg-sky-500 transition-colors"
           title="Toggle Navigation Menu"
         >
           {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -71,12 +68,12 @@ const AppContent: React.FC = () => {
         </main>
       </div>
 
-      {/* Live Red Alert Notification Toast (Responsive on Mobile & Desktop) */}
+      {/* Live Red Alert Notification Toast (Clean defense look with softened glow) */}
       {activeToastAlert && (
         <div className="fixed top-4 right-4 left-4 sm:left-auto sm:max-w-md z-50 animate-bounce">
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-red-950/95 via-red-900/90 to-black/95 border-2 border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.8)] backdrop-blur-xl flex items-start justify-between gap-3">
+          <div className="p-3.5 rounded-2xl bg-gradient-to-r from-red-950/95 via-red-900/90 to-black/95 border border-red-500/80 shadow-xl backdrop-blur-xl flex items-start justify-between gap-3 text-white">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-red-600 text-white shadow-lg animate-pulse shrink-0 mt-0.5">
+              <div className="p-2 rounded-xl bg-red-600 text-white shadow-md animate-pulse shrink-0 mt-0.5">
                 <ShieldAlert className="w-5 h-5" />
               </div>
               <div className="min-w-0">

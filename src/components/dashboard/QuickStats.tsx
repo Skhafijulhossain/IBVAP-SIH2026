@@ -16,77 +16,77 @@ export const QuickStats: React.FC = () => {
       value: totalCount,
       subtitle: 'Across 8 Border Sectors',
       icon: Camera,
-      color: 'text-sky-400',
-      bgGlow: 'from-sky-500/10 to-blue-600/5 border-sky-500/30',
+      color: 'text-sky-600 dark:text-sky-400',
+      iconBg: 'bg-sky-500/15 border-sky-500/30',
       badge: 'RTSP/ONVIF',
-      badgeColor: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
+      badgeColor: 'bg-sky-500/15 text-sky-600 dark:text-sky-300 border-sky-500/30',
     },
     {
       title: 'Active Cameras',
       value: activeCount,
       subtitle: `${Math.round((activeCount / (totalCount || 1)) * 100)}% Network Coverage`,
       icon: Wifi,
-      color: 'text-emerald-400',
-      bgGlow: 'from-emerald-500/10 to-teal-600/5 border-emerald-500/30',
+      color: 'text-emerald-600 dark:text-emerald-400',
+      iconBg: 'bg-emerald-500/15 border-emerald-500/30',
       badge: 'LIVE STREAMS',
-      badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+      badgeColor: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border-emerald-500/30',
     },
     {
       title: 'Intrusion Alerts Today',
       value: stats.intrusionAlertsToday,
       subtitle: `${criticalAlertsCount} Critical Breaches`,
       icon: ShieldAlert,
-      color: 'text-red-400',
-      bgGlow: 'from-red-500/15 to-orange-600/5 border-red-500/40',
+      color: 'text-red-600 dark:text-red-400',
+      iconBg: 'bg-red-500/15 border-red-500/30',
       badge: 'ACTIVE THREATS',
-      badgeColor: 'bg-red-500/20 text-red-300 border-red-500/30 animate-pulse',
+      badgeColor: 'bg-red-500/15 text-red-600 dark:text-red-300 border-red-500/30 animate-pulse',
     },
     {
       title: 'Offline Cameras',
       value: offlineCount,
-      subtitle: offlineCount > 0 ? 'Requires Edge Node Inspection' : 'All Feeds Operational',
+      subtitle: offlineCount > 0 ? 'Requires Node Inspection' : 'All Feeds Operational',
       icon: WifiOff,
-      color: offlineCount > 0 ? 'text-amber-400' : 'text-slate-400',
-      bgGlow: offlineCount > 0 ? 'from-amber-500/10 to-red-600/5 border-amber-500/30' : 'from-slate-800/40 to-slate-900/40 border-slate-700/50',
+      color: offlineCount > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400',
+      iconBg: offlineCount > 0 ? 'bg-amber-500/15 border-amber-500/30' : 'bg-[var(--surface-raised)] border-[var(--border)]',
       badge: offlineCount > 0 ? 'ATTENTION' : 'NOMINAL',
-      badgeColor: offlineCount > 0 ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-slate-700/40 text-slate-300 border-slate-600',
+      badgeColor: offlineCount > 0 ? 'bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-500/30' : 'bg-[var(--surface-raised)] text-[var(--muted)] border-[var(--border)]',
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 transition-colors">
       {statCards.map((card, i) => {
         const Icon = card.icon;
         return (
           <div
             key={i}
-            className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${card.bgGlow} border p-4 backdrop-blur-md transition-all duration-300 hover:scale-[1.02] shadow-lg`}
+            className="relative overflow-hidden rounded-2xl bg-[var(--card)] border border-[var(--border)] p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:border-sky-500/40"
           >
             {/* Background watermark icon */}
-            <Icon className="absolute -right-2 -bottom-2 w-20 h-20 opacity-5 pointer-events-none" />
+            <Icon className="absolute -right-2 -bottom-2 w-20 h-20 opacity-5 pointer-events-none text-[var(--text)]" />
 
             <div className="flex items-start justify-between">
               <div>
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
                   {card.title}
                 </span>
                 <div className="mt-1 flex items-baseline gap-2">
-                  <span className="text-2xl lg:text-3xl font-black font-mono tracking-tight text-white">
+                  <span className="text-2xl lg:text-3xl font-black font-mono tracking-tight text-[var(--text)]">
                     {card.value}
                   </span>
-                  <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${card.badgeColor}`}>
+                  <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border font-semibold ${card.badgeColor}`}>
                     {card.badge}
                   </span>
                 </div>
               </div>
 
-              <div className={`p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/60 ${card.color}`}>
+              <div className={`p-2.5 rounded-xl border ${card.iconBg} ${card.color}`}>
                 <Icon className="w-5 h-5" />
               </div>
             </div>
 
-            <div className="mt-2 text-[11px] text-slate-400 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+            <div className="mt-2 text-[11px] text-[var(--muted)] flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
               <span>{card.subtitle}</span>
             </div>
           </div>

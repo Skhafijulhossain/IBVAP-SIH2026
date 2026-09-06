@@ -33,7 +33,6 @@ export const EventTimeline: React.FC<EventTimelineProps> = () => {
     return true;
   });
 
-
   const handleExportCsv = () => {
     const rows = events.map((e) => ({
       Event_ID: e.id,
@@ -51,18 +50,18 @@ export const EventTimeline: React.FC<EventTimelineProps> = () => {
   };
 
   return (
-    <div className="rounded-2xl bg-[#090e1a]/95 border border-sky-950/70 p-4 shadow-xl flex flex-col">
+    <div className="rounded-2xl bg-[var(--card)] border border-[var(--border)] p-4 shadow-sm flex flex-col transition-colors">
       {/* Header & Export Tools */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30">
+          <div className="p-1.5 rounded-lg bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30">
             <History className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+            <h3 className="text-sm font-bold text-[var(--text)] tracking-tight flex items-center gap-2">
               Border Surveillance Event Timeline & Forensics
             </h3>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-[var(--muted)]">
               Chronological log with AI verification confidence and spatial tags
             </p>
           </div>
@@ -72,7 +71,7 @@ export const EventTimeline: React.FC<EventTimelineProps> = () => {
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
             onClick={handleExportCsv}
-            className="px-2.5 py-1.5 rounded-lg bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/40 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow"
+            className="px-2.5 py-1.5 rounded-lg bg-[var(--surface-raised)] hover:bg-[var(--card-hover)] text-[var(--text)] border border-[var(--border)] text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV</span>
@@ -80,17 +79,17 @@ export const EventTimeline: React.FC<EventTimelineProps> = () => {
         </div>
       </div>
 
-      {/* Filter Ribbon: Search, Event Type, Min Confidence */}
-      <div className="flex flex-wrap items-center gap-2 mb-3 p-2 bg-slate-900/90 rounded-xl border border-slate-800 text-xs">
+      {/* Filter Ribbon */}
+      <div className="flex flex-wrap items-center gap-2 mb-3 p-2 bg-[var(--surface-raised)] rounded-xl border border-[var(--border)] text-xs">
         {/* Search */}
         <div className="relative flex-1 min-w-[160px]">
-          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-[var(--muted)] absolute left-2.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by Camera, Event, or Sector..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-2.5 py-1 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs placeholder:text-slate-500 focus:outline-none focus:border-cyan-400"
+            className="w-full pl-8 pr-2.5 py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--text)] text-xs placeholder:text-[var(--muted)] focus:outline-none focus:border-sky-500"
           />
         </div>
 
@@ -98,7 +97,7 @@ export const EventTimeline: React.FC<EventTimelineProps> = () => {
         <select
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
-          className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs focus:outline-none focus:border-cyan-400"
+          className="px-2.5 py-1 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[var(--text)] text-xs focus:outline-none focus:border-sky-500"
         >
           <option value="all">All Event Types</option>
           <option value="person">Person Detected</option>
@@ -111,9 +110,9 @@ export const EventTimeline: React.FC<EventTimelineProps> = () => {
         </select>
 
         {/* Confidence Threshold */}
-        <div className="flex items-center gap-1.5 text-slate-400 text-[11px] font-mono">
+        <div className="flex items-center gap-1.5 text-[var(--muted)] text-[11px] font-mono">
           <span>Min Conf:</span>
-          <span className="font-bold text-sky-300">{Math.round(minConfidence * 100)}%</span>
+          <span className="font-bold text-sky-600 dark:text-sky-300">{Math.round(minConfidence * 100)}%</span>
           <input
             type="range"
             min="0.5"
@@ -121,16 +120,16 @@ export const EventTimeline: React.FC<EventTimelineProps> = () => {
             step="0.05"
             value={minConfidence}
             onChange={(e) => setMinConfidence(parseFloat(e.target.value))}
-            className="w-20 accent-cyan-400 cursor-pointer"
+            className="w-16 accent-sky-500 cursor-pointer"
           />
         </div>
       </div>
 
-      {/* Table Container */}
-      <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/60">
+      {/* Table Container with Sticky Header & Soft Hover */}
+      <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-[var(--card)] max-h-[360px]">
         <table className="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr className="border-b border-slate-800 bg-slate-900/80 text-[10px] font-mono uppercase tracking-wider text-slate-400">
+          <thead className="sticky top-0 z-10 bg-[var(--table-header)] border-b border-[var(--border)] backdrop-blur-md">
+            <tr className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">
               <th className="py-2.5 px-3">Event ID</th>
               <th className="py-2.5 px-3">Timestamp</th>
               <th className="py-2.5 px-3">Camera Node</th>
@@ -141,50 +140,50 @@ export const EventTimeline: React.FC<EventTimelineProps> = () => {
               <th className="py-2.5 px-3">Triage Operator</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
+          <tbody className="divide-y divide-[var(--border-subtle)] font-mono text-[11px]">
             {filteredEvents.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-6 text-center text-slate-500">
+                <td colSpan={8} className="py-6 text-center text-[var(--muted)] font-sans">
                   No matching events found. Adjust search filters.
                 </td>
               </tr>
             ) : (
               filteredEvents.map((evt) => (
-                <tr key={evt.id} className="hover:bg-slate-800/40 transition-colors">
-                  <td className="py-2 px-3 font-bold text-sky-400">
+                <tr key={evt.id} className="hover:bg-[var(--table-row-hover)] transition-colors">
+                  <td className="py-2.5 px-3 font-bold text-sky-600 dark:text-sky-400">
                     {evt.id}
                   </td>
-                  <td className="py-2 px-3 text-slate-300 whitespace-nowrap">
+                  <td className="py-2.5 px-3 text-[var(--text-secondary)] whitespace-nowrap">
                     {evt.timestamp}
                   </td>
-                  <td className="py-2 px-3 font-bold text-slate-200 whitespace-nowrap">
+                  <td className="py-2.5 px-3 font-bold text-[var(--text)] whitespace-nowrap">
                     {evt.cameraId}
                   </td>
-                  <td className="py-2 px-3 text-slate-400 font-sans whitespace-nowrap">
+                  <td className="py-2.5 px-3 text-[var(--muted)] font-sans whitespace-nowrap">
                     {evt.sector}
                   </td>
-                  <td className="py-2 px-3 font-sans font-semibold text-slate-200">
+                  <td className="py-2.5 px-3 font-sans font-semibold text-[var(--text)]">
                     {getDetectionTypeLabel(evt.eventType)}
                   </td>
-                  <td className="py-2 px-3">
+                  <td className="py-2.5 px-3">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-emerald-400">
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
                         {formatConfidence(evt.confidence)}
                       </span>
-                      <div className="w-12 bg-slate-800 h-1 rounded-full overflow-hidden hidden sm:block">
+                      <div className="w-12 bg-[var(--surface-raised)] border border-[var(--border)] h-1 rounded-full overflow-hidden hidden sm:block">
                         <div
                           style={{ width: `${evt.confidence * 100}%` }}
-                          className="bg-emerald-400 h-full rounded-full"
+                          className="bg-emerald-500 h-full rounded-full"
                         />
                       </div>
                     </div>
                   </td>
-                  <td className="py-2 px-3">
+                  <td className="py-2.5 px-3">
                     <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${getSeverityBadgeClass(evt.threatLevel)}`}>
                       {evt.threatLevel}
                     </span>
                   </td>
-                  <td className="py-2 px-3 font-sans text-slate-400">
+                  <td className="py-2.5 px-3 font-sans text-[var(--text-secondary)]">
                     {evt.resolvedBy || 'Automated Pipeline'}
                   </td>
                 </tr>

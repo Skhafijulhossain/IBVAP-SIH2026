@@ -23,10 +23,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const primaryFourCameras = cameras.slice(0, 4);
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 transition-colors">
       {/* Emergency Lockdown Notice Banner if Triggered */}
       {isEmergencyLockdown && (
-        <div className="p-4 rounded-2xl bg-red-600/90 text-white border-2 border-red-400 shadow-2xl flex items-center justify-between gap-4 animate-bounce">
+        <div className="p-4 rounded-2xl bg-red-600 text-white border border-red-500 shadow-xl flex items-center justify-between gap-4 animate-bounce">
           <div className="flex items-center gap-3">
             <Radio className="w-6 h-6 animate-pulse" />
             <div>
@@ -54,17 +54,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30">
+            <div className="p-1.5 rounded-lg bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30">
               <Video className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base lg:text-lg font-black text-white tracking-tight flex items-center gap-2">
+              <h2 className="text-base lg:text-lg font-black text-[var(--text)] tracking-tight flex items-center gap-2">
                 Live Perimeter CCTV Monitoring Grid
-                <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                   4-CH ACTIVE HUD
                 </span>
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[var(--muted)]">
                 Real-time AI target tracking, tripwire intrusion detection & multi-vision thermal feeds
               </p>
             </div>
@@ -72,7 +72,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
           <button
             onClick={() => onNavigate('monitoring')}
-            className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-sky-400 hover:text-cyan-300 border border-slate-700/80 hover:border-sky-500/40 text-xs font-semibold flex items-center gap-1.5 transition-all shadow"
+            className="px-3 py-1.5 rounded-xl bg-[var(--card)] hover:bg-[var(--card-hover)] text-sky-600 dark:text-sky-400 border border-[var(--border)] text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
           >
             <span>Full 8-CH Matrix</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -98,7 +98,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         )}
       </section>
 
-      {/* 3. AI Workflow Section: Existing CCTV -> Edge AI -> AI Analytics -> Event Engine -> Command Center */}
+      {/* 3. AI Workflow Section */}
       <section>
         <AiWorkflow />
       </section>

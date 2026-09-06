@@ -7,12 +7,12 @@ import {
   Search, 
   Volume2, 
   VolumeX, 
-  Download,
-  Zap,
-  CheckCheck,
-  Radio,
-  Eye,
-  CheckCircle
+  Download, 
+  Zap, 
+  CheckCheck, 
+  Radio, 
+  Eye, 
+  CheckCircle 
 } from 'lucide-react';
 import { formatConfidence, getSeverityBadgeClass, getSeverityDotClass, getDetectionTypeLabel, exportToCsv } from '../utils/helpers';
 
@@ -71,27 +71,27 @@ export const AlertsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-5 pb-12">
+    <div className="space-y-4 pb-12 transition-colors">
       {/* Top Header Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[#090e1a]/95 border border-sky-950/80 shadow-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="relative p-2.5 rounded-xl bg-red-500/20 text-red-400 border border-red-500/30">
+          <div className="relative p-2 rounded-xl bg-red-500/15 text-red-500 border border-red-500/30">
             <Bell className="w-5 h-5" />
             {criticalCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
               </span>
             )}
           </div>
           <div>
-            <h1 className="text-base lg:text-lg font-black text-white tracking-tight flex items-center gap-2">
+            <h1 className="text-base lg:text-lg font-black text-[var(--text)] tracking-tight flex items-center gap-2">
               Border Surveillance Alert Command & Triage
-              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/30">
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-red-500/15 text-red-600 dark:text-red-300 border border-red-500/30">
                 {criticalCount} CRITICAL PENDING
               </span>
             </h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[var(--muted)]">
               Correlated AI incident queue with real-time audio telemetry, QRF dispatch & forensics
             </p>
           </div>
@@ -102,9 +102,9 @@ export const AlertsPage: React.FC = () => {
           {/* Quick Jury Demo Trigger */}
           <button
             onClick={() => triggerManualAlert('intrusion')}
-            className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition-colors shadow"
+            className="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
           >
-            <Zap className="w-3.5 h-3.5 text-amber-400 animate-bounce" />
+            <Zap className="w-3.5 h-3.5 text-amber-500 animate-bounce" />
             <span>Simulate Breach</span>
           </button>
 
@@ -113,8 +113,8 @@ export const AlertsPage: React.FC = () => {
             onClick={toggleSound}
             className={`p-2 rounded-xl border transition-all text-xs flex items-center justify-center ${
               soundEnabled
-                ? 'bg-sky-500/10 border-sky-500/30 text-sky-400'
-                : 'bg-slate-800 border-slate-700 text-slate-500'
+                ? 'bg-sky-500/15 border-sky-500/30 text-sky-600 dark:text-sky-400'
+                : 'bg-[var(--surface-raised)] border-[var(--border)] text-[var(--muted)]'
             }`}
           >
             {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -123,7 +123,7 @@ export const AlertsPage: React.FC = () => {
           {/* Export CSV */}
           <button
             onClick={handleExportCsv}
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            className="px-3 py-1.5 rounded-xl bg-[var(--surface-raised)] hover:bg-[var(--card-hover)] text-[var(--text)] border border-[var(--border)] text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV</span>
@@ -131,25 +131,25 @@ export const AlertsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter Tabs: Critical (Red), Warning (Orange), Info (Blue) */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-900/90 rounded-2xl border border-slate-800 text-xs">
+      {/* Filter Tabs & Search */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-[var(--surface-raised)] rounded-2xl border border-[var(--border)] text-xs">
         {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+        <div className="relative flex-1 min-w-[220px]">
+          <Search className="w-4 h-4 text-[var(--muted)] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search alerts by Camera, Sector, or Keyword..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400"
+            className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-[var(--card)] border border-[var(--border)] text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-sky-500"
           />
         </div>
 
-        {/* Confidence Filter Slider & Presets */}
-        <div className="flex items-center gap-2.5 bg-slate-950 px-3 py-1 rounded-xl border border-slate-800 text-xs">
-          <div className="flex items-center gap-1.5 text-slate-300">
-            <span className="text-slate-400 font-mono text-[11px]">Min Conf:</span>
-            <span className="font-mono text-cyan-300 font-bold text-[11px]">{Math.round(minConfidence * 100)}%</span>
+        {/* Confidence Filter Slider & Quick Presets */}
+        <div className="flex items-center gap-2 bg-[var(--card)] px-3 py-1 rounded-xl border border-[var(--border)] text-xs">
+          <div className="flex items-center gap-1 text-[var(--muted)]">
+            <span className="font-mono text-[11px]">Min Conf:</span>
+            <span className="font-mono text-sky-600 dark:text-cyan-300 font-bold text-[11px]">{Math.round(minConfidence * 100)}%</span>
           </div>
           <input
             type="range"
@@ -158,13 +158,13 @@ export const AlertsPage: React.FC = () => {
             step="0.05"
             value={minConfidence}
             onChange={(e) => setMinConfidence(parseFloat(e.target.value))}
-            className="w-20 accent-cyan-400 cursor-pointer"
+            className="w-16 accent-sky-500 cursor-pointer"
           />
           <div className="flex items-center gap-1">
             <button
               onClick={() => setMinConfidence(0.80)}
               className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition-colors ${
-                minConfidence === 0.80 ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold' : 'text-slate-400 hover:text-white'
+                minConfidence === 0.80 ? 'bg-sky-500/20 text-sky-600 dark:text-cyan-300 font-bold border border-sky-500/40' : 'text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
               0.80
@@ -172,7 +172,7 @@ export const AlertsPage: React.FC = () => {
             <button
               onClick={() => setMinConfidence(0.90)}
               className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition-colors ${
-                minConfidence === 0.90 ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold' : 'text-slate-400 hover:text-white'
+                minConfidence === 0.90 ? 'bg-sky-500/20 text-sky-600 dark:text-cyan-300 font-bold border border-sky-500/40' : 'text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
               0.90+
@@ -183,11 +183,11 @@ export const AlertsPage: React.FC = () => {
         {/* Severity & Status Filter Tabs */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Status Filter */}
-          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <div className="flex items-center gap-1 bg-[var(--card)] p-1 rounded-xl border border-[var(--border)]">
             <button
               onClick={() => setStatusFilter('all')}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                statusFilter === 'all' ? 'bg-slate-700 text-white font-semibold' : 'text-slate-400 hover:text-slate-200'
+                statusFilter === 'all' ? 'bg-sky-600 text-white font-semibold' : 'text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
               All Status
@@ -195,7 +195,7 @@ export const AlertsPage: React.FC = () => {
             <button
               onClick={() => setStatusFilter('new')}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                statusFilter === 'new' ? 'bg-red-600/80 text-white font-semibold' : 'text-slate-400 hover:text-slate-200'
+                statusFilter === 'new' ? 'bg-red-600 text-white font-semibold' : 'text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
               New Pending
@@ -203,7 +203,7 @@ export const AlertsPage: React.FC = () => {
             <button
               onClick={() => setStatusFilter('escalated_to_qrf')}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                statusFilter === 'escalated_to_qrf' ? 'bg-cyan-600/80 text-white font-semibold' : 'text-slate-400 hover:text-slate-200'
+                statusFilter === 'escalated_to_qrf' ? 'bg-indigo-600 text-white font-semibold' : 'text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
               QRF Dispatched
@@ -211,19 +211,19 @@ export const AlertsPage: React.FC = () => {
           </div>
 
           {/* Severity Selector Tabs */}
-          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <div className="flex items-center gap-1 bg-[var(--card)] p-1 rounded-xl border border-[var(--border)]">
             <button
               onClick={() => setSeverityFilter('all')}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                severityFilter === 'all' ? 'bg-sky-600 text-white font-semibold shadow' : 'text-slate-400 hover:text-slate-200'
+                severityFilter === 'all' ? 'bg-sky-600 text-white font-semibold shadow-sm' : 'text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
-              All Severities
+              All
             </button>
             <button
               onClick={() => setSeverityFilter('critical')}
               className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
-                severityFilter === 'critical' ? 'bg-red-600 text-white shadow' : 'text-red-400 hover:bg-red-500/10'
+                severityFilter === 'critical' ? 'bg-red-600 text-white shadow-sm' : 'text-red-500 hover:bg-red-500/10'
               }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
@@ -232,7 +232,7 @@ export const AlertsPage: React.FC = () => {
             <button
               onClick={() => setSeverityFilter('warning')}
               className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
-                severityFilter === 'warning' ? 'bg-amber-600 text-black shadow' : 'text-amber-400 hover:bg-amber-500/10'
+                severityFilter === 'warning' ? 'bg-amber-600 text-white shadow-sm' : 'text-amber-500 hover:bg-amber-500/10'
               }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
@@ -241,7 +241,7 @@ export const AlertsPage: React.FC = () => {
             <button
               onClick={() => setSeverityFilter('info')}
               className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
-                severityFilter === 'info' ? 'bg-blue-600 text-white shadow' : 'text-blue-400 hover:bg-blue-500/10'
+                severityFilter === 'info' ? 'bg-blue-600 text-white shadow-sm' : 'text-blue-500 hover:bg-blue-500/10'
               }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
@@ -251,13 +251,13 @@ export const AlertsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Alerts Grid Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Alerts Grid Cards (Simplified, Reduced Glow, Cleaner Spacing) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
         {filteredAlerts.length === 0 ? (
-          <div className="col-span-2 p-12 text-center rounded-2xl bg-slate-950/60 border border-slate-800 text-slate-500">
-            <CheckCircle className="w-10 h-10 text-emerald-500/50 mx-auto mb-2" />
-            <div className="text-sm font-semibold text-slate-400">No active alerts matching criteria</div>
-            <div className="text-xs text-slate-500 mt-1">All border perimeter sectors reporting nominal telemetry</div>
+          <div className="col-span-2 p-12 text-center rounded-2xl bg-[var(--card)] border border-[var(--border)] text-[var(--muted)]">
+            <CheckCircle className="w-8 h-8 text-emerald-500/50 mx-auto mb-2" />
+            <div className="text-sm font-semibold text-[var(--text-secondary)]">No active alerts matching criteria</div>
+            <div className="text-xs text-[var(--muted)] mt-1">All border perimeter sectors reporting nominal telemetry</div>
           </div>
         ) : (
           filteredAlerts.map((alert: Alert) => {
@@ -266,88 +266,87 @@ export const AlertsPage: React.FC = () => {
             const isNew = alert.status === 'new';
 
             const cardBorder = isCritical
-              ? 'border-red-500/50 bg-red-950/20 hover:border-red-400'
+              ? 'border-red-500/40 bg-red-500/5 hover:border-red-500/70'
               : isWarning
-              ? 'border-amber-500/40 bg-amber-950/15 hover:border-amber-400'
-              : 'border-blue-500/30 bg-blue-950/10 hover:border-blue-400';
+              ? 'border-amber-500/40 bg-amber-500/5 hover:border-amber-500/70'
+              : 'border-blue-500/30 bg-blue-500/5 hover:border-blue-500/60';
 
             return (
               <div
                 key={alert.id}
-                className={`p-4 rounded-2xl border transition-all duration-300 shadow-xl ${cardBorder} flex flex-col justify-between ${
+                className={`p-4 rounded-2xl border transition-all duration-150 shadow-sm ${cardBorder} flex flex-col justify-between ${
                   isCritical && isNew ? 'animate-pulse' : ''
                 }`}
               >
                 <div>
                   {/* Top Bar: Alert ID, Severity, Confidence, Time */}
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2.5 h-2.5 rounded-full ${getSeverityDotClass(alert.severity)}`} />
-                      <span className="font-mono text-xs font-bold text-white">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`w-2 h-2 rounded-full ${getSeverityDotClass(alert.severity)}`} />
+                      <span className="font-mono text-xs font-bold text-[var(--text)]">
                         {alert.id}
                       </span>
-                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase ${getSeverityBadgeClass(alert.severity)}`}>
+                      <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded font-bold uppercase ${getSeverityBadgeClass(alert.severity)}`}>
                         {alert.severity}
                       </span>
-                      <span className="text-xs font-mono font-bold text-cyan-300">
+                      <span className="text-xs font-mono font-semibold text-sky-600 dark:text-cyan-300">
                         {formatConfidence(alert.confidence)} AI Match
                       </span>
                     </div>
 
-                    <span className="text-xs font-mono text-slate-400">
+                    <span className="text-xs font-mono text-[var(--muted)]">
                       {alert.timestamp}
                     </span>
                   </div>
 
-                  {/* Title & Camera Node */}
-                  <div className="text-sm font-bold text-slate-100 flex items-center gap-2">
-                    <span>{getDetectionTypeLabel(alert.eventType)}</span>
-                    <span className="text-xs text-cyan-400 font-mono font-semibold">
+                  {/* Camera & Event Category */}
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-bold text-[var(--text)]">
+                      {getDetectionTypeLabel(alert.eventType)}
+                    </span>
+                    <span className="text-[10px] text-[var(--muted)] font-mono">
                       • {alert.cameraName} ({alert.cameraId})
+                    </span>
+                    <span className="text-[10px] text-[var(--muted)] font-mono px-1.5 py-0.2 rounded bg-[var(--surface-raised)] border border-[var(--border)]">
+                      {alert.sector}
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                  {/* Description */}
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                     {alert.description}
                   </p>
 
-                  {/* GPS & Sector Meta */}
-                  <div className="mt-3 text-[11px] font-mono text-slate-400 flex items-center gap-3">
-                    <span>Sector: <strong className="text-slate-200">{alert.sector}</strong></span>
-                    <span>•</span>
-                    <span>GPS: {alert.coordinates.lat.toFixed(4)}°N, {alert.coordinates.lng.toFixed(4)}°E</span>
-                  </div>
-
                   {/* QRF / Unit Dispatch Status */}
                   {alert.qrfDispatched && (
-                    <div className="mt-3 flex items-center gap-2 text-xs font-mono text-cyan-300 bg-cyan-950/60 p-2 rounded-xl border border-cyan-500/40">
-                      <Radio className="w-4 h-4 text-cyan-400 animate-pulse shrink-0" />
-                      <span>{alert.assignedUnit || 'QRF Rapid Unit En-Route'}</span>
+                    <div className="mt-2 flex items-center gap-1.5 text-xs font-mono text-sky-600 dark:text-cyan-300 bg-sky-500/10 px-2 py-1 rounded border border-sky-500/20">
+                      <Radio className="w-3.5 h-3.5 text-cyan-500 animate-pulse" />
+                      <span>Assigned Unit: <strong>{alert.assignedUnit || 'QRF Rapid Unit'}</strong></span>
                     </div>
                   )}
                 </div>
 
-                {/* Bottom Action Footer */}
-                <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
-                  <span className="text-xs font-mono text-slate-400">
-                    Status: <strong className="text-slate-200 capitalize">{alert.status.replace('_', ' ')}</strong>
-                  </span>
+                {/* Footer Controls: Smaller Buttons, Improved Spacing */}
+                <div className="mt-3 pt-2 border-t border-[var(--border)] flex items-center justify-between gap-2">
+                  <div className="text-[11px] font-mono text-[var(--muted)]">
+                    Status: <strong className="text-[var(--text)] capitalize">{alert.status.replace('_', ' ')}</strong>
+                  </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     {isNew && (
                       <button
                         onClick={() => acknowledgeAlert(alert.id)}
-                        className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors flex items-center gap-1"
+                        className="px-2.5 py-1 rounded-lg bg-[var(--surface-raised)] hover:bg-[var(--card-hover)] text-[var(--text)] text-xs font-semibold transition-colors flex items-center gap-1 border border-[var(--border)] shadow-sm"
                       >
-                        <CheckCheck className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>Acknowledge</span>
+                        <CheckCheck className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>Ack</span>
                       </button>
                     )}
 
                     {!alert.qrfDispatched && isCritical && (
                       <button
-                        onClick={() => escalateAlert(alert.id, 'QRF Tactical Response Team 1')}
-                        className="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-all shadow-md shadow-red-600/30 flex items-center gap-1.5"
+                        onClick={() => escalateAlert(alert.id, 'QRF Alpha Fast Team')}
+                        className="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-colors shadow-sm flex items-center gap-1"
                       >
                         <Radio className="w-3.5 h-3.5 animate-pulse" />
                         <span>Dispatch QRF</span>
@@ -356,10 +355,10 @@ export const AlertsPage: React.FC = () => {
 
                     <button
                       onClick={() => setInspectingAlert(alert)}
-                      className="px-3 py-1.5 rounded-xl bg-sky-600/80 hover:bg-sky-500 text-white text-xs font-semibold transition-all shadow flex items-center gap-1.5"
+                      className="px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition-colors flex items-center gap-1 shadow-sm"
                     >
                       <Eye className="w-3.5 h-3.5" />
-                      <span>Inspect Dossier</span>
+                      <span>Inspect</span>
                     </button>
                   </div>
                 </div>
@@ -369,7 +368,7 @@ export const AlertsPage: React.FC = () => {
         )}
       </div>
 
-      {/* Evidence Investigation Dossier Modal */}
+      {/* Global Incident Evidence Modal */}
       {inspectingAlert && (
         <IncidentModal
           alert={inspectingAlert}
