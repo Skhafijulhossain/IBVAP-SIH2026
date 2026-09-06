@@ -2,10 +2,16 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-# Database path (SQLite by default in the backend directory)
+# Database path (SQLite by default in the backend directory, or /tmp in serverless environments)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "ibvap.db")
-DATABASE_URL = f"sqlite:///{DB_PATH}"
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if not DATABASE_URL:
+    if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+        DATABASE_URL = "sqlite:////tmp/ibvap.db"
+    else:
+        DATABASE_URL = f"sqlite:///{DB_PATH}"
+
 
 # Create SQLite engine with check_same_thread=False for FastAPI concurrency
 engine = create_engine(
