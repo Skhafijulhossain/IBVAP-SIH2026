@@ -137,13 +137,14 @@ def get_authenticated_profile(current_user: AuthenticatedUser = Depends(get_curr
 app.include_router(ws_router)
 
 
+import os
+import uvicorn
+
 if __name__ == "__main__":
-    import os
-    import uvicorn
-
-    port = int(os.environ.get("PORT", 8000))
-    host = os.environ.get("HOST", "0.0.0.0")
-    reload = os.environ.get("RELOAD", "false").lower() in ("true", "1", "yes")
-
-    print(f"[IBVAP Defense API] Starting on {host}:{port} (Render ready, reload={reload})...")
-    uvicorn.run("backend.main:app", host=host, port=port, reload=reload)
+    port = int(os.getenv("PORT", "10000"))
+    uvicorn.run(
+        "backend.main:app",
+        host="0.0.0.0",
+        port=port,
+        reload=False
+    )

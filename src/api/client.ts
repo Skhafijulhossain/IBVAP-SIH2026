@@ -68,11 +68,20 @@ export class ApiService {
     const timeoutId = setTimeout(() => controller.abort(), this.config.timeoutMs || 15000);
 
     const url = this.resolveUrl(endpoint);
-    const headers = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'X-Client-Platform': 'IBVAP-SIH2026',
-      ...(options.headers || {}),
+      ...((options.headers as Record<string, string>) || {}),
     };
+
+    try {
+      const token = localStorage.getItem('ibvap_access_token');
+      if (token && !headers['Authorization']) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    } catch {
+      // Ignore in environments without localStorage
+    }
 
     try {
       const response = await fetch(url, {

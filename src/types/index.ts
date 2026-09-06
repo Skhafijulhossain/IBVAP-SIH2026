@@ -101,15 +101,18 @@ export interface AiWorkflowStep {
   color: string;
 }
 
+export type UserRole = 'Commander' | 'Analyst' | 'Admin';
+
 export interface User {
   id: string;
-  badgeId: string;
+  badgeId?: string;
   name: string;
-  role: string;
-  clearanceLevel: string;
-  team: string;
-  unit: string;
-  avatar: string;
+  email?: string;
+  role: UserRole | string;
+  clearanceLevel?: string;
+  team?: string;
+  unit?: string;
+  avatar?: string;
 }
 
 export interface SystemStats {

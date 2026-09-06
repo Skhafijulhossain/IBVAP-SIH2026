@@ -175,7 +175,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
                     <div className="text-[10px] text-[var(--muted)] font-mono">{user.role}</div>
                   </div>
                   <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-600 dark:text-cyan-300 shrink-0 border border-sky-500/25">
-                    {user.clearanceLevel.split(' ')[0]}
+                    {user.clearanceLevel ? user.clearanceLevel.split(' ')[0] : 'LEVEL 3'}
                   </span>
                 </button>
               ))}
