@@ -1,8 +1,17 @@
-# Vercel Ignore Rules
-# Exclude Python backend and heavy model/video files from Vite frontend build & deployment
+# Vercel Deployment Ignore Rules
+# Strictly deploy ONLY the React + Vite frontend to Vercel
+# Backend runs exclusively on Render (FastAPI + YOLOv11)
+
 backend/
+api/
 *.pt
-*.mp4
 *.db
+render.yaml
+Procfile
+requirements.txt
+
+# Additional non-frontend artifacts
+*.mp4
 *.sqlite3
 *.log
+__pycache__/

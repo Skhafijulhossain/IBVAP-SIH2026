@@ -66,7 +66,7 @@ app.add_middleware(
 def root():
     """Root status endpoint providing platform metadata and health links."""
     import os
-    env_name = "Vercel Python Serverless" if os.environ.get("VERCEL") or "api.index" in sys.modules else "Production FastAPI Defense Gateway"
+    env_name = "Production FastAPI Defense Gateway (Render)"
     return {
         "service": "IBVAP — Intelligent Border Video Analytics Platform",
         "status": "ONLINE",
