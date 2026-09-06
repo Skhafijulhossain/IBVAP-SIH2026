@@ -255,6 +255,15 @@ export const camerasApi = {
    * POST /cameras/:id/reboot
    */
   async rebootCamera(id: string): Promise<{ status: string }> {
+    if (ApiService.getConfig().isLiveBackend) {
+      try {
+        return await ApiService.request<{ status: string }>(`/cameras/${id}/reboot`, {
+          method: 'POST',
+        });
+      } catch (err) {
+        console.warn('FastAPI reboot camera fallback:', err);
+      }
+    }
     await new Promise((res) => setTimeout(res, 600));
     return { status: `Edge node for ${id} rebooted.` };
   }

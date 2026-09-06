@@ -80,6 +80,17 @@ export const eventsApi = {
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' IST',
     };
 
+    if (ApiService.getConfig().isLiveBackend) {
+      try {
+        return await ApiService.request<SurveillanceEvent>('/events/log', {
+          method: 'POST',
+          body: JSON.stringify(event),
+        });
+      } catch (err) {
+        console.warn('FastAPI event log fallback:', err);
+      }
+    }
+
     const updated = [newEvent, ...list];
     try {
       localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(updated));

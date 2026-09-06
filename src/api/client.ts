@@ -1,6 +1,7 @@
 /**
  * API Client Configuration
- * Supports switching between Mock (Offline-First) and Live FastAPI Backend (`http://localhost:8000/api/v1`)
+ * Supports connecting to live Render Defense Backend Gateway or Localhost via environment variables,
+ * with graceful offline-first fallback.
  */
 
 export interface ApiConfig {
@@ -9,10 +10,17 @@ export interface ApiConfig {
   timeoutMs: number;
 }
 
+// Read API Base URL from environment variables with local fallback
+const envApiUrl = (
+  import.meta.env?.VITE_API_BASE_URL ||
+  import.meta.env?.VITE_API_URL ||
+  'http://localhost:8000'
+) as string;
+
 export const API_CONFIG: ApiConfig = {
-  baseUrl: (import.meta.env?.VITE_API_URL as string) || 'http://localhost:8000/api',
+  baseUrl: envApiUrl.replace(/\/+$/, ''),
   isLiveBackend: true, // Connect to live FastAPI backend by default
-  timeoutMs: 3000,
+  timeoutMs: 15000, // 15s timeout to gracefully accommodate Render cold-starts
 };
 
 export class ApiService {
@@ -21,12 +29,34 @@ export class ApiService {
   public static setLiveMode(isLive: boolean, baseUrl?: string) {
     this.config.isLiveBackend = isLive;
     if (baseUrl) {
-      this.config.baseUrl = baseUrl;
+      this.config.baseUrl = baseUrl.replace(/\/+$/, '');
     }
   }
 
   public static getConfig(): ApiConfig {
     return { ...this.config };
+  }
+
+  /**
+   * Resolves endpoint URLs cleanly.
+   * Handles root endpoints (/health), explicit API endpoints (/api/*),
+   * and short paths (/cameras -> /api/cameras).
+   */
+  public static resolveUrl(endpoint: string): string {
+    const base = this.config.baseUrl.replace(/\/+$/, '');
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+    // Root-level health check or already prefixed with /api
+    if (cleanEndpoint === '/health' || cleanEndpoint.startsWith('/api/') || cleanEndpoint === '/api') {
+      return `${base}${cleanEndpoint}`;
+    }
+
+    // If base URL already ends with /api, avoid duplicating
+    if (base.endsWith('/api')) {
+      return `${base}${cleanEndpoint}`;
+    }
+
+    return `${base}/api${cleanEndpoint}`;
   }
 
   public static async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -35,9 +65,9 @@ export class ApiService {
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.config.timeoutMs || 3000);
+    const timeoutId = setTimeout(() => controller.abort(), this.config.timeoutMs || 15000);
 
-    const url = `${this.config.baseUrl}${endpoint}`;
+    const url = this.resolveUrl(endpoint);
     const headers = {
       'Content-Type': 'application/json',
       'X-Client-Platform': 'IBVAP-SIH2026',
@@ -62,4 +92,3 @@ export class ApiService {
     }
   }
 }
-

@@ -559,8 +559,8 @@ export const DEFAULT_AI_CONFIG: AiModelConfig = {
   enableWeaponDetection: true,
   enableLoiteringDetection: true,
   edgeNodeId: 'EDGE-NODE-NORTH-04',
-  backendApiUrl: (import.meta.env?.VITE_API_URL as string) || 'http://localhost:8000/api/v1',
-  websocketUrl: (import.meta.env?.VITE_WS_URL as string) || 'ws://localhost:8000/ws/alerts',
+  backendApiUrl: ((import.meta.env?.VITE_API_BASE_URL || import.meta.env?.VITE_API_URL || 'http://localhost:8000') as string).replace(/\/+$/, '').replace(/\/api(\/v1)?$/, '') + '/api/v1',
+  websocketUrl: ((import.meta.env?.VITE_WS_BASE_URL || import.meta.env?.VITE_WS_URL || 'ws://localhost:8000/ws') as string).replace(/\/+$/, '').replace(/\/alerts$/, '') + '/alerts',
   soundAlertsEnabled: true,
   autoAcknowledgeLowConfidence: false,
   qrfDispatchChannel: 'SECURE_TAC_MESH_CH7'

@@ -3,6 +3,20 @@ import { Alert } from '../types';
 export type AlertCallback = (alert: Alert) => void;
 export type ConnectionStateCallback = (isConnected: boolean) => void;
 
+function getDefaultWebSocketUrl(): string {
+  const envWsBase = (
+    import.meta.env?.VITE_WS_BASE_URL ||
+    import.meta.env?.VITE_WS_URL ||
+    'ws://localhost:8000/ws'
+  ) as string;
+
+  const trimmed = envWsBase.replace(/\/+$/, '');
+  if (trimmed.endsWith('/alerts')) {
+    return trimmed;
+  }
+  return `${trimmed}/alerts`;
+}
+
 class WebSocketService {
   private socket: WebSocket | null = null;
   private subscribers: Set<AlertCallback> = new Set();
@@ -34,7 +48,7 @@ class WebSocketService {
     }
   }
 
-  public connect(url = (import.meta.env?.VITE_WS_URL as string) || 'ws://localhost:8000/ws/alerts') {
+  public connect(url = getDefaultWebSocketUrl()) {
     if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
       return;
     }

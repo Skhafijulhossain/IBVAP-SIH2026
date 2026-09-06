@@ -154,6 +154,17 @@ export const alertsApi = {
     };
     saveLocalAlerts(list);
 
+    if (ApiService.getConfig().isLiveBackend) {
+      try {
+        await ApiService.request(`/alerts/${id}/resolve`, {
+          method: 'POST',
+          body: JSON.stringify({ notes }),
+        });
+      } catch (err) {
+        console.warn('FastAPI sync failed:', err);
+      }
+    }
+
     return list[index];
   },
 
