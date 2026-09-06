@@ -12,11 +12,15 @@ if not DATABASE_URL:
     else:
         DATABASE_URL = f"sqlite:///{DB_PATH}"
 
+# Render PostgreSQL sets postgres:// - SQLAlchemy 2.0 requires postgresql://
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-# Create SQLite engine with check_same_thread=False for FastAPI concurrency
+# Create engine with check_same_thread=False only for SQLite
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False},
+    connect_args=connect_args,
     echo=False,
 )
 

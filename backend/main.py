@@ -61,6 +61,20 @@ app.add_middleware(
 )
 
 
+@app.get("/", tags=["Root"])
+def root():
+    """Root status endpoint providing platform metadata and health links."""
+    return {
+        "service": "IBVAP — Intelligent Border Video Analytics Platform",
+        "status": "ONLINE",
+        "version": "2.4.0-Defense",
+        "platform": "Smart India Hackathon 2026",
+        "docs": "/docs",
+        "redoc": "/redoc",
+        "health": "/health",
+    }
+
+
 @app.get("/health", response_model=HealthResponse, tags=["Health"])
 @app.get("/api/health", response_model=HealthResponse, tags=["Health"])
 @app.get("/api/v1/health", response_model=HealthResponse, tags=["Health"])
@@ -97,5 +111,12 @@ app.include_router(ws_router)
 
 
 if __name__ == "__main__":
+    import os
     import uvicorn
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
+
+    port = int(os.environ.get("PORT", 8000))
+    host = os.environ.get("HOST", "0.0.0.0")
+    reload = os.environ.get("RELOAD", "false").lower() in ("true", "1", "yes")
+
+    print(f"[IBVAP Defense API] Starting on {host}:{port} (Render ready, reload={reload})...")
+    uvicorn.run("backend.main:app", host=host, port=port, reload=reload)
