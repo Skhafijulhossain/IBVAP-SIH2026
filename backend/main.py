@@ -122,6 +122,17 @@ for prefix in ["/api", "/api/v1"]:
     app.include_router(ai_router, prefix=prefix)
     app.include_router(stream_router, prefix=prefix)
 
+from .auth.supabase_auth import AuthenticatedUser, get_current_user
+
+@app.get("/api/auth/me", response_model=AuthenticatedUser, tags=["Authentication"])
+@app.get("/api/v1/auth/me", response_model=AuthenticatedUser, tags=["Authentication"])
+def get_authenticated_profile(current_user: AuthenticatedUser = Depends(get_current_user)):
+    """
+    Returns the decoded Supabase authenticated operator identity and role.
+    Verifies Bearer JWT signature against SUPABASE_JWT_SECRET.
+    """
+    return current_user
+
 # Mount WebSocket Gateway
 app.include_router(ws_router)
 
