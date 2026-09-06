@@ -2,8 +2,8 @@
 # Strictly deploy ONLY the React + Vite frontend to Vercel
 # Backend runs exclusively on Render (FastAPI + YOLOv11)
 
-backend/
-api/
+/backend/
+/api/
 *.pt
 *.db
 render.yaml
@@ -15,3 +15,7 @@ requirements.txt
 *.sqlite3
 *.log
 __pycache__/
+
+# Ensure frontend API directory is never ignored
+!src/api/
+!src/api/**

@@ -217,8 +217,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setIsLoading(false);
       return { success: true };
-    } catch (err: any) {
-      const msg = err?.message || 'Authentication failed. Please check credentials.';
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Authentication failed. Please check credentials.';
       setError(msg);
       setIsLoading(false);
       return { success: false, error: msg };
@@ -294,8 +294,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setIsLoading(false);
       return { success: true };
-    } catch (err: any) {
-      const msg = err?.message || 'Sign up request failed. Please check your details.';
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Sign up request failed. Please check your details.';
       setError(msg);
       setIsLoading(false);
       return { success: false, error: msg };

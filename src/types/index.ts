@@ -149,3 +149,60 @@ export interface AiModelConfig {
   autoAcknowledgeLowConfidence: boolean;
   qrfDispatchChannel: string;
 }
+
+export interface RawDetectionItem {
+  class: string;
+  confidence: number;
+  bbox?: {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  };
+  track_id?: number;
+}
+
+export interface DetectionTelemetry {
+  cameraId: string;
+  cameraName?: string;
+  sector?: string;
+  detections: (RawDetectionItem | Detection)[];
+  fps?: number;
+  status?: string;
+  isLive?: boolean;
+  sourceType?: string;
+}
+
+export interface StreamInfo {
+  camera_id: string;
+  status: string;
+  rtsp_url?: string;
+  target_fps?: number;
+  frames_processed?: number;
+  detections_count?: number;
+  reconnect_count?: number;
+  uptime_sec?: number;
+  fps?: number;
+  bitrate?: string;
+  last_detections?: RawDetectionItem[];
+}
+
+export interface StreamStatusResponse {
+  active_streams: number;
+  streams: Record<string, StreamInfo>;
+}
+
+export interface StreamActionResponse {
+  status: string;
+  camera_id?: string;
+  message?: string;
+}
+
+export interface AuthSession {
+  access_token: string;
+  token_type?: string;
+  expires_in?: number;
+  refresh_token?: string;
+  user: User | null;
+}
+

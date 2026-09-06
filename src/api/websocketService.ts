@@ -1,17 +1,8 @@
-import { Alert } from '../types';
+import { Alert, DetectionTelemetry } from '../types';
 
+export type { DetectionTelemetry };
 export type AlertCallback = (alert: Alert) => void;
 export type ConnectionStateCallback = (isConnected: boolean) => void;
-export type DetectionTelemetry = {
-  cameraId: string;
-  cameraName?: string;
-  sector?: string;
-  detections: any[];
-  fps?: number;
-  status?: string;
-  isLive?: boolean;
-  sourceType?: string;
-};
 export type DetectionCallback = (telemetry: DetectionTelemetry) => void;
 
 function getDefaultWebSocketUrl(): string {

@@ -6,19 +6,28 @@
 
 export interface ApiConfig {
   baseUrl: string;
+  wsUrl: string;
   isLiveBackend: boolean;
   timeoutMs: number;
 }
 
-// Read API Base URL from environment variables with local fallback
+// Read API Base URL from environment variables (VITE_API_URL or VITE_API_BASE_URL)
 const envApiUrl = (
-  import.meta.env?.VITE_API_BASE_URL ||
   import.meta.env?.VITE_API_URL ||
-  'http://localhost:8000'
+  import.meta.env?.VITE_API_BASE_URL ||
+  'https://ibvap-backend-22xy.onrender.com'
+) as string;
+
+// Read WebSocket Base URL from environment variables (VITE_WS_URL or VITE_WS_BASE_URL)
+const envWsUrl = (
+  import.meta.env?.VITE_WS_URL ||
+  import.meta.env?.VITE_WS_BASE_URL ||
+  envApiUrl.replace(/^http/, 'ws') + '/ws'
 ) as string;
 
 export const API_CONFIG: ApiConfig = {
   baseUrl: envApiUrl.replace(/\/+$/, ''),
+  wsUrl: envWsUrl.replace(/\/+$/, ''),
   isLiveBackend: true, // Connect to live FastAPI backend by default
   timeoutMs: 15000, // 15s timeout to gracefully accommodate Render cold-starts
 };
@@ -26,15 +35,27 @@ export const API_CONFIG: ApiConfig = {
 export class ApiService {
   private static config: ApiConfig = { ...API_CONFIG };
 
-  public static setLiveMode(isLive: boolean, baseUrl?: string) {
+  public static setLiveMode(isLive: boolean, baseUrl?: string, wsUrl?: string) {
     this.config.isLiveBackend = isLive;
     if (baseUrl) {
       this.config.baseUrl = baseUrl.replace(/\/+$/, '');
+    }
+    if (wsUrl) {
+      this.config.wsUrl = wsUrl.replace(/\/+$/, '');
     }
   }
 
   public static getConfig(): ApiConfig {
     return { ...this.config };
+  }
+
+  public static getWsUrl(endpoint = '/alerts'): string {
+    const base = this.config.wsUrl.replace(/\/+$/, '');
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    if (base.endsWith('/alerts') && cleanEndpoint === '/alerts') {
+      return base;
+    }
+    return `${base}${cleanEndpoint}`;
   }
 
   /**
@@ -74,6 +95,7 @@ export class ApiService {
       ...((options.headers as Record<string, string>) || {}),
     };
 
+    // Attach Authorization Bearer token from Supabase session if available
     try {
       const token = localStorage.getItem('ibvap_access_token');
       if (token && !headers['Authorization']) {

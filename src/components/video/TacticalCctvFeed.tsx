@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, VisionMode } from '../../types';
+import { Camera, VisionMode, RawDetectionItem } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { ApiService } from '../../api/client';
 import { useEdgeCameraDetector } from '../../hooks/useEdgeCameraDetector';
@@ -196,9 +196,9 @@ export const TacticalCctvFeed: React.FC<TacticalCctvFeedProps> = ({
     : `${simulatedFps} FPS`;
 
   // Threat Level (Essential Badge 3: Threat Level)
-  const backendDetections = activeStreamInfo?.last_detections || [];
-  const hasBackendCritical = backendDetections.some((d: any) => d.class === 'person' || d.class === 'intrusion');
-  const hasBackendWarning = backendDetections.some((d: any) => d.class === 'vehicle' || d.class === 'animal');
+  const backendDetections = (activeStreamInfo?.last_detections || []) as RawDetectionItem[];
+  const hasBackendCritical = backendDetections.some((d: RawDetectionItem) => d.class === 'person' || d.class === 'intrusion');
+  const hasBackendWarning = backendDetections.some((d: RawDetectionItem) => d.class === 'vehicle' || d.class === 'animal');
 
   const hasCritical = isStreamingLive ? hasBackendCritical : effectiveDetections.some((d) => d.threatLevel === 'critical');
   const hasWarning = isStreamingLive ? hasBackendWarning : effectiveDetections.some((d) => d.threatLevel === 'warning');

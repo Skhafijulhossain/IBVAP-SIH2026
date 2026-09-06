@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { Camera, Alert, SystemStats, AiModelConfig, SurveillanceEvent } from '../types';
+import { 
+  Camera, 
+  Alert, 
+  SurveillanceEvent, 
+  SystemStats, 
+  AiModelConfig, 
+  Detection,
+  DetectionType,
+  AlertSeverity
+} from '../types';
 import { camerasApi } from '../api/camerasApi';
 import { alertsApi } from '../api/alertsApi';
 import { eventsApi } from '../api/eventsApi';
@@ -243,20 +252,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setCameras((prevCams) =>
         prevCams.map((c) => {
           if (c.id !== telemetry.cameraId) return c;
-          const mappedDets = (telemetry.detections || []).map((d: any, idx: number) => ({
-            id: `det-live-${idx}`,
-            type: (d.class === 'person' || d.class === 'vehicle' || d.class === 'animal') ? d.class : 'intrusion',
-            label: `${d.class}`,
-            confidence: d.confidence,
-            box: {
-              x: (d.bbox?.x || 0) * 100,
-              y: (d.bbox?.y || 0) * 100,
-              width: (d.bbox?.w || 0.2) * 100,
-              height: (d.bbox?.h || 0.3) * 100,
-            },
-            trackId: 100 + idx,
-            threatLevel: (d.class === 'person' ? 'critical' : 'warning') as any,
-          }));
+          const mappedDets: Detection[] = (telemetry.detections || []).map((rawD, idx: number) => {
+            const d = rawD as { class?: string; confidence?: number; bbox?: { x?: number; y?: number; w?: number; h?: number } };
+            const detClass = d.class || 'intrusion';
+            const detType: DetectionType = (detClass === 'person' || detClass === 'vehicle' || detClass === 'animal') ? detClass : 'intrusion';
+            const threatLevel: AlertSeverity = detClass === 'person' ? 'critical' : 'warning';
+            return {
+              id: `det-live-${idx}`,
+              type: detType,
+              label: `${detClass}`,
+              confidence: d.confidence || 0.85,
+              box: {
+                x: (d.bbox?.x || 0) * 100,
+                y: (d.bbox?.y || 0) * 100,
+                width: (d.bbox?.w || 0.2) * 100,
+                height: (d.bbox?.h || 0.3) * 100,
+              },
+              trackId: 100 + idx,
+              threatLevel,
+            };
+          });
           return {
             ...c,
             status: 'online',

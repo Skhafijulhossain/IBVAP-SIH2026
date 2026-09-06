@@ -1,4 +1,4 @@
-import { Camera } from '../types';
+import { Camera, StreamStatusResponse, StreamActionResponse } from '../types';
 import { INITIAL_CAMERAS } from '../data/mockData';
 import { ApiService } from './client';
 
@@ -192,11 +192,11 @@ export const camerasApi = {
   /**
    * GET /stream/status
    */
-  async getStreamStatus(): Promise<{ active_streams: number; streams: Record<string, any> }> {
+  async getStreamStatus(): Promise<StreamStatusResponse> {
     if (ApiService.getConfig().isLiveBackend) {
       try {
-        return await ApiService.request('/stream/status');
-      } catch (err) {
+        return await ApiService.request<StreamStatusResponse>('/stream/status');
+      } catch {
         // fallback
       }
     }
@@ -220,14 +220,14 @@ export const camerasApi = {
   /**
    * POST /stream/start
    */
-  async startStream(cameraId = 'CAM-01', fps = 15): Promise<any> {
+  async startStream(cameraId = 'CAM-01', fps = 15): Promise<StreamActionResponse> {
     if (ApiService.getConfig().isLiveBackend) {
       try {
-        return await ApiService.request('/stream/start', {
+        return await ApiService.request<StreamActionResponse>('/stream/start', {
           method: 'POST',
           body: JSON.stringify({ camera_id: cameraId, fps }),
         });
-      } catch (err) {
+      } catch {
         // fallback
       }
     }
@@ -237,14 +237,14 @@ export const camerasApi = {
   /**
    * POST /stream/stop
    */
-  async stopStream(cameraId?: string): Promise<any> {
+  async stopStream(cameraId?: string): Promise<StreamActionResponse> {
     if (ApiService.getConfig().isLiveBackend) {
       try {
-        return await ApiService.request('/stream/stop', {
+        return await ApiService.request<StreamActionResponse>('/stream/stop', {
           method: 'POST',
           body: JSON.stringify({ camera_id: cameraId }),
         });
-      } catch (err) {
+      } catch {
         // fallback
       }
     }
